@@ -1,0 +1,9 @@
+project:
+  output-dir: _docs
+
+website:
+  title: "sql-face"
+  site-url: "https://AndreaMacarulla.github.io/sql-face"
+  description: "Saves face image attributes in SQL database."
+  repo-branch: main
+  repo-url: "https://github.com/AndreaMacarulla/sql-face"
