@@ -5,4 +5,5 @@ d = { 'settings': { 'branch': 'main',
                 'doc_host': 'https://AndreaMacarulla.github.io',
                 'git_url': 'https://github.com/AndreaMacarulla/sql-face',
                 'lib_path': 'sql_face'},
-  'syms': {'sql_face.core': {'sql_face.core.foo': ('core.html#foo', 'sql_face/core.py')}}}
+  'syms': { 'sql_face.core': {'sql_face.core.foo': ('core.html#foo', 'sql_face/core.py')},
+            'sql_face.sqldb': {'sql_face.sqldb.first_test': ('sqldb.html#first_test', 'sql_face/sqldb.py')}}}
