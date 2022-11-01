@@ -4,4 +4,10 @@
 __all__ = ['foo']
 
 # %% ../nbs/00_core.ipynb 3
-def foo(): pass
+def foo(
+    x:int # number to compute
+    ) -> int:
+    return x + 2
+
+"Add 2 to integer number"
+

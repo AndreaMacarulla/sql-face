@@ -5,5 +5,8 @@ d = { 'settings': { 'branch': 'main',
                 'doc_host': 'https://AndreaMacarulla.github.io',
                 'git_url': 'https://github.com/AndreaMacarulla/sql-face',
                 'lib_path': 'sql_face'},
-  'syms': { 'sql_face.core': {'sql_face.core.foo': ('core.html#foo', 'sql_face/core.py')},
-            'sql_face.sqldb': {'sql_face.sqldb.first_test': ('sqldb.html#first_test', 'sql_face/sqldb.py')}}}
+  'syms': { 'sql_face.alchemy': {'sql_face.alchemy.get_session': ('alchemy.html#get_session', 'sql_face/alchemy.py')},
+            'sql_face.core': {'sql_face.core.foo': ('core.html#foo', 'sql_face/core.py')},
+            'sql_face.sqldb': { 'sql_face.sqldb.SQLDataBase': ('sqldb.html#sqldatabase', 'sql_face/sqldb.py'),
+                                'sql_face.sqldb.SQLDataBase.__init__': ('sqldb.html#sqldatabase.__init__', 'sql_face/sqldb.py'),
+                                'sql_face.sqldb._get_output_dir': ('sqldb.html#_get_output_dir', 'sql_face/sqldb.py')}}}
