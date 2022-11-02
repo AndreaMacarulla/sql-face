@@ -4,7 +4,7 @@
 __all__ = ['SQLDataBase']
 
 # %% ../nbs/01_sqldb.ipynb 3
-from .alchemy import get_session
+from sql_face.alchemy import get_session
 
 # %% ../nbs/01_sqldb.ipynb 4
 def _get_output_dir(output_dir_name:str, save_in_drive:bool):

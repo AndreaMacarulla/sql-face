@@ -5,9 +5,11 @@ __all__ = ['get_session']
 
 # %% ../nbs/02_alchemy.ipynb 3
 import os
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
+
+from sql_face.tables import Base, Image
 
 # %% ../nbs/02_alchemy.ipynb 4
 def get_session(
