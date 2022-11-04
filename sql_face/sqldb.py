@@ -4,16 +4,20 @@
 __all__ = ['SQLDataBase']
 
 # %% ../nbs/01_sqldb.ipynb 3
-from sql_face.alchemy import get_session
+from typing import List
 
 # %% ../nbs/01_sqldb.ipynb 4
+from sql_face.alchemy import get_session
+from sql_face.databases import get_image_db
+
+# %% ../nbs/01_sqldb.ipynb 5
 def _get_output_dir(output_dir_name:str, save_in_drive:bool):
     if save_in_drive:
         return os.path.join('../drive', 'MyDrive', output_dir_name)
     else:
         return output_dir_name 
 
-# %% ../nbs/01_sqldb.ipynb 5
+# %% ../nbs/01_sqldb.ipynb 6
 class SQLDataBase:
     "A SQL `class` to save face attributes"
     #TODO: Change absolute to relative paths.
@@ -21,11 +25,13 @@ class SQLDataBase:
         db_name: str, # Dataset file name
         input_dir:str = '/home/andrea/Desktop/image_datasets', # Folder with face datasets files
         output_dir_name:str = '/home/andrea/Desktop/sql_database', #Folder where the .db will be saved
-        save_in_drive: bool = False # Flag for working in local / Google Colab
+        save_in_drive: bool = False, # Flag for working in local / Google Colab
+        database_names: List[str] = [] # List of database names to be processed
     ): 
     
         self.db_name=db_name
         self.input_dir = input_dir        
         self.save_in_drive = save_in_drive
         self.output_dir = _get_output_dir(output_dir_name, save_in_drive)
-        self.session = get_session(output_dir_name, db_name)    
+        self.session = get_session(output_dir_name, db_name) 
+        self.databases = get_image_db(input_dir, database_names)
