@@ -6,3 +6,4 @@ website:
       - 01_sqldb.ipynb
       - 02_alchemy.ipynb
       - 03_tables.ipynb
+      - 04_databases.ipynb
