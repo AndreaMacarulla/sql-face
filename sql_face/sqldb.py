@@ -21,7 +21,7 @@ def _get_output_dir(output_dir_name:str, save_in_drive:bool):
 # %% ../nbs/01_sqldb.ipynb 6
 class SQLDataBase:
     "A SQL `class` to save face attributes"
-    #TODO: Change absolute to relative paths.
+    
     def __init__(self,
         db_name: str, # Dataset file name
         input_dir:str, # Folder with face datasets files
@@ -60,10 +60,8 @@ class SQLDataBase:
         create_face_images(self.session)
         create_quality_images(self.session)
 
-    def update_tables(self, attributes_to_update:List[str], force_update:bool=False):
-        for db in tqdm(self.databases, desc=f'Updating attributes in databases'):
-            print(f'Database {db}')
-            db.update_images(self.session, attributes_to_update, force_update = force_update)
+    def update_tables(self, attributes_to_update:List[str], force_update:bool=False):        
+        update_images(self.session, self.databases, attributes_to_update, force_update = force_update)
         # self.update_cropped_images(force_update = force_update)
         # self.update_face_images(force_update = force_update)
         # self.update_quality_images(force_update = force_update)

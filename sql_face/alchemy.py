@@ -2,7 +2,8 @@
 
 # %% auto 0
 __all__ = ['get_session', 'create_detectors', 'create_embedding_models', 'create_quality_models', 'fill_cropped_image_general',
-           'create_cropped_images', 'create_face_images', 'create_quality_images']
+           'create_cropped_images', 'create_face_images', 'create_quality_images', 'update_images', 'update_gender',
+           'update_age', 'update_emotion']
 
 # %% ../nbs/02_alchemy.ipynb 3
 import os
@@ -15,6 +16,7 @@ from sqlalchemy.orm import sessionmaker
 
 from deepface.commons import functions
 
+from sql_face.databases import FaceDataBase
 from sql_face.tables import Base, Image, Detector, CroppedImage, EmbeddingModel, FaceImage, QualityModel, QualityImage
 
 # %% ../nbs/02_alchemy.ipynb 5
@@ -180,3 +182,68 @@ def create_quality_images(session):
                 qua_image.qualityModels = qua
                 session.add(qua_image)
                 session.commit()
+
+# %% ../nbs/02_alchemy.ipynb 15
+def update_images(session, 
+                databases:List[FaceDataBase], 
+                attributes: List[str], 
+                force_update: bool = False):
+
+    "Updates Image attributes"
+    if 'gender' in attributes:
+        update_gender(session, databases, force_update)
+
+    if 'age' in attributes:
+        update_age(session, databases, force_update)
+
+    if 'emotion' in attributes:
+        update_emotion(session, databases, force_update)
+    
+    if 'race' in attributes:
+        update_race(session, databases, force_update) 
+
+# %% ../nbs/02_alchemy.ipynb 16
+def update_gender(session, databases:List[FaceDataBase], force_update: bool = False):
+    for db in databases:
+        query = session.query(Image).filter(Image.source == db.source)
+        if not force_update:
+            query = query.filter(Image.gender == None)
+        all_img = (query.all())
+        for img in tqdm(all_img, desc='Update gender'):
+            filters = DeepFace.analyze(img_path=img.get_image(), actions=[
+                                       'gender'], enforce_detection=False)
+            img.gender = Gender(filters["gender"])
+            session.commit()
+
+# %% ../nbs/02_alchemy.ipynb 17
+def update_age(session, databases:List[FaceDataBase],force_update: bool = False):
+    for db in databases:
+        query = session.query(Image).filter(Image.source == db.source)
+        if not force_update:
+            query = query.filter(Image.age == None)
+        all_img = (query.all())
+        for img in tqdm(all_img, desc='Update age'):
+            filters = DeepFace.analyze(img_path=img.get_image(), actions=[
+                                       'age'], enforce_detection=False)
+            age = filters["age"]
+            img.age_number = age
+            img.age = Age.age2enum(age)
+            
+            
+            session.commit()
+
+# %% ../nbs/02_alchemy.ipynb 18
+def update_emotion(session, databases:List[FaceDataBase],force_update: bool = False):
+    for db in databases:
+        query = session.query(Image).filter(Image.source == db.source)
+        if not force_update:
+            query = query.filter(Image.emotion == None)
+        all_img = (query.all())
+        for img in tqdm(all_img, desc='Update facial expression (emotion)'):
+            filters = DeepFace.analyze(img_path=img.get_image(), actions=[
+                                       'emotion'], enforce_detection=False)
+
+            emotions = filters["emotion"]
+            prime_emotion = max(emotions, key=emotions.get)
+            img.emotion = Emotion(prime_emotion)
+            session.commit()
