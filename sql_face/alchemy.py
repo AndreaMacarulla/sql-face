@@ -3,7 +3,8 @@
 # %% auto 0
 __all__ = ['get_session', 'create_detectors', 'create_embedding_models', 'create_quality_models', 'fill_cropped_image_general',
            'create_cropped_images', 'create_face_images', 'create_quality_images', 'update_images', 'update_gender',
-           'update_age', 'update_emotion']
+           'update_age', 'update_emotion', 'update_race', 'update_cropped_images', 'update_face_images',
+           'update_embeddings', 'update_quality_images', 'update_ser_fiq', 'update_tface']
 
 # %% ../nbs/02_alchemy.ipynb 3
 import os
@@ -11,10 +12,11 @@ import os
 from typing import List
 from tqdm import tqdm
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, or_
 from sqlalchemy.orm import sessionmaker
 
 from deepface.commons import functions
+from deepface import DeepFace
 
 from sql_face.databases import FaceDataBase
 from sql_face.tables import Base, Image, Detector, CroppedImage, EmbeddingModel, FaceImage, QualityModel, QualityImage
@@ -247,3 +249,141 @@ def update_emotion(session, databases:List[FaceDataBase],force_update: bool = Fa
             prime_emotion = max(emotions, key=emotions.get)
             img.emotion = Emotion(prime_emotion)
             session.commit()
+
+# %% ../nbs/02_alchemy.ipynb 19
+def update_race(session, databases:List[FaceDataBase], force_update: bool = False):
+    for db in databases:
+        query = session.query(Image).filter(Image.source == db.source)
+        if not force_update:
+            query = query.filter(Image.race == None)
+        all_img = (query.all())
+        for img in tqdm(all_img, desc='Update race'):
+            filters = DeepFace.analyze(img_path=img.get_image(), actions=[
+                                    'race'], enforce_detection=False)
+
+            races = filters["race"]
+            prime_race = max(races, key=races.get)
+            img.race = Race(prime_race)
+            session.commit()
+
+# %% ../nbs/02_alchemy.ipynb 21
+def update_cropped_images(session, force_update: bool = False):
+        
+    query = session.query(CroppedImage).join(Detector)
+    
+    if not force_update:
+        query = query.filter(or_(CroppedImage.face_detected == None, CroppedImage.bounding_box == None))
+
+    query_serfiq = query.filter(Detector.name == 'mtcnn_serfiq')
+    query_general = query.filter(Detector.name != 'mtcnn_serfiq')
+
+    all_cr_img_serfiq = (query_serfiq.all())
+    all_cr_img_general = (query_general.all())
+
+    # TODO: add serfiq model case.
+    # if all_cr_img_serfiq:
+    #     ser_fiq = self.ser_fiq
+    #     fill_cropped_image = fill_cropped_image_serfiq
+    #     for cr_img in tqdm(all_cr_img_serfiq, desc='Update cropped images serfiq'):
+    #         fill_cropped_image(cr_img, ser_fiq = ser_fiq)
+    #         session.commit()
+
+    ser_fiq = None
+    fill_cropped_image = fill_cropped_image_general
+
+    for cr_img in tqdm(all_cr_img_general, desc='Update cropped images'):
+        fill_cropped_image(cr_img, ser_fiq = ser_fiq)
+        session.commit()
+
+
+# %% ../nbs/02_alchemy.ipynb 22
+def update_face_images(session, force_update: bool = False):
+    update_embeddings(session, force_update)
+# self.update_confusion_score(force_update)
+
+# %% ../nbs/02_alchemy.ipynb 23
+def update_embeddings(session, force_update: bool = False):
+    
+    query = session.query(FaceImage, EmbeddingModel, Detector, Image) \
+        .join(EmbeddingModel) \
+        .join(CroppedImage, CroppedImage.croppedImage_id == FaceImage.croppedImage_id) \
+        .join(Detector) \
+        .join(Image, Image.image_id == CroppedImage.image_id) \
+        .filter(EmbeddingModel.name != 'FaceVACs', Detector.name != 'mtcnn_serfiq')
+
+    if not force_update:
+        query = query.filter(FaceImage.embeddings == None)
+    all_face_img = (query.all())
+
+    for face_img in tqdm(all_face_img, desc='Computing embeddings'):
+        embedding = DeepFace.represent(face_img.Image.get_image(), detector_backend=face_img.Detector.name,
+                                        model_name=face_img.EmbeddingModel.name, enforce_detection=True)
+        face_img.FaceImage.embeddings = embedding
+
+        session.commit()
+
+# %% ../nbs/02_alchemy.ipynb 24
+def update_quality_images(session, force_update: bool = False):
+    # TODO: consider ser_fiq
+    #update_ser_fiq(force_update=force_update)
+    update_tface(session, force_update=force_update)
+             
+def update_ser_fiq(session, force_update: bool = False):
+    
+    #ser_fiq = self.ser_fiq
+    
+    # todo: Now it is only for ArcFace, it should be expanded to other embedding models.
+    query = session.query(QualityImage, CroppedImage) \
+        .join(QualityModel) \
+        .join(FaceImage, FaceImage.faceImage_id == QualityImage.faceImage_id) \
+        .join(EmbeddingModel) \
+        .join(CroppedImage, CroppedImage.croppedImage_id == FaceImage.croppedImage_id) \
+        .filter(EmbeddingModel.name == 'ArcFace',
+                QualityModel.name == 'ser_fiq')
+    #    .join(Image, Image.image_id == CroppedImage.image_id) \
+    #    
+
+    if not force_update:
+        query = query.filter(QualityImage.quality == None)
+    all_rows = (query.all())
+
+    for row in tqdm(all_rows, desc='Computing SER-FIQ quality'):              
+
+        aligned_img = row.CroppedImage.get_aligned_image(ser_fiq=ser_fiq) 
+        quality = ser_fiq.get_score(aligned_img, T=100)
+        
+        row.QualityImage.quality = quality
+        session.commit()
+
+
+def update_tface(session, force_update: bool = False):
+    
+    #ser_fiq = self.ser_fiq
+    ser_fiq = None
+    net = network()
+    
+    # todo: Now it is only for ArcFace, it should be expanded to other embedding models.
+    query = session.query(QualityImage, CroppedImage) \
+        .join(QualityModel) \
+        .join(FaceImage, FaceImage.faceImage_id == QualityImage.faceImage_id) \
+        .join(EmbeddingModel) \
+        .join(CroppedImage, CroppedImage.croppedImage_id == FaceImage.croppedImage_id) \
+        .filter(EmbeddingModel.name == 'ArcFace', #todo: is it ArcFace FR?
+                QualityModel.name == 'tface')
+        # .join(Image, Image.image_id == CroppedImage.image_id) 
+        
+
+    if not force_update:
+        query = query.filter(QualityImage.quality == None)
+    all_rows = (query.all())
+
+    for row in tqdm(all_rows[:5], desc='TRIM: Computing TFace quality'):              
+
+        aligned_img = row.CroppedImage.get_aligned_image(ser_fiq=ser_fiq) 
+        input_data = preprocess_tf_img(aligned_img)
+        quality = net(input_data).data.cpu().numpy().squeeze()           
+        
+        row.QualityImage.quality = quality
+        session.commit()
+
+
