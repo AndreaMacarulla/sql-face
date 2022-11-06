@@ -45,14 +45,15 @@ class SQLDataBase:
         self.quality_model_names = quality_model_names
 
     def create_tables(self):
+        "Creates the SQL tables and fills ONLY the Cropped Images."
         create_detectors(self.session, self.detector_names)
         create_embedding_models(self.session, self.embedding_model_names)
         create_quality_models(self.session, self.quality_model_names)
 
         for db in self.databases:
             db.create_images(self.session)
-        # # todo: optimize creating facevacs pairs.
-        # # self.create_facevacs_pairs()
+        # todo: optimize creating facevacs pairs.
+        # self.create_facevacs_pairs()
         
 
         create_cropped_images(self.session) 
