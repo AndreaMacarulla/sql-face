@@ -7,3 +7,4 @@ website:
       - 02_alchemy.ipynb
       - 03_tables.ipynb
       - 04_databases.ipynb
+      - 05_serfiq.ipynb
