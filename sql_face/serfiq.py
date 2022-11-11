@@ -131,6 +131,7 @@ class SER_FIQ:
 
 # %% ../nbs/05_serfiq.ipynb 5
 def get_serfiq_model():
+    
     gpu_available = bool(tf.config.list_physical_devices('GPU'))
     if gpu_available:
         serfiq = SER_FIQ(gpu=0)
