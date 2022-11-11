@@ -44,7 +44,7 @@ class SQLDataBase:
         self.embedding_model_names = embedding_model_names
         self.quality_model_names = quality_model_names
 
-    def create_tables(self):
+    def create_tables(self, serfiq=None):
         "Creates the SQL tables and fills ONLY the Cropped Images."
         create_detectors(self.session, self.detector_names)
         create_embedding_models(self.session, self.embedding_model_names)
@@ -56,12 +56,12 @@ class SQLDataBase:
         # self.create_facevacs_pairs()
         
 
-        create_cropped_images(self.session) 
+        create_cropped_images(self.session, serfiq) 
         create_face_images(self.session)
         create_quality_images(self.session)
 
-    def update_tables(self, attributes_to_update:List[str], force_update:bool=False):        
+    def update_tables(self, attributes_to_update:List[str], force_update:bool=False, serfiq = None):        
         # update_images(self.session, self.databases, attributes_to_update, force_update = force_update)
-        #update_cropped_images(self.session, force_update = force_update)
-        #update_face_images(self.session, force_update = force_update)
-        update_quality_images(self.session, force_update = force_update)
+        update_cropped_images(self.session, force_update = force_update, serfiq = serfiq)
+        update_face_images(self.session, force_update = force_update)
+        # update_quality_images(self.session, serfiq, force_update = force_update)

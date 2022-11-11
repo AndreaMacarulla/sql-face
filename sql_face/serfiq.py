@@ -3,6 +3,20 @@
 # %% auto 0
 __all__ = ['SER_FIQ', 'get_serfiq_model']
 
+# %% ../nbs/05_serfiq.ipynb 3
+import numpy as np
+import mxnet as mx
+from mxnet import gluon
+import cv2
+import tensorflow as tf
+
+from sklearn.preprocessing import normalize
+from sklearn.metrics.pairwise import euclidean_distances
+
+from insightface.src import mtcnn_detector
+from insightface.src import face_preprocess
+
+
 # %% ../nbs/05_serfiq.ipynb 4
 class SER_FIQ:
     
@@ -31,9 +45,9 @@ class SER_FIQ:
             self.device = mx.gpu(gpu)
 
         self.insightface = gluon.nn.SymbolBlock.imports(
-                                    "../insightface/model/insightface-symbol.json",
+                                    "./insightface/model/insightface-symbol.json",
                                     ['data'],
-                                    "../insightface/model/insightface-0000.params", 
+                                    "./insightface/model/insightface-0000.params", 
                                     ctx=self.device
                            )
 
@@ -46,7 +60,7 @@ class SER_FIQ:
         
         thrs = self.det_threshold if det==0 else [0.0,0.0,0.2]
         
-        self.detector = mtcnn_detector.MtcnnDetector(model_folder="../insightface/mtcnn-model/", 
+        self.detector = mtcnn_detector.MtcnnDetector(model_folder="./insightface/mtcnn-model/", 
                                                     ctx=self.device, 
                                                     num_worker=1, 
                                                     accurate_landmark = True, 
