@@ -165,6 +165,7 @@ class CroppedImage(Base):
             return image
 
     def get_aligned_image(self, target_size:Tuple[int,int]=(112,112), ser_fiq = None):
+        
         if self.detectors.name == 'mtcnn_serfiq':
             image = self.images.get_image() 
             aligned_image = ser_fiq.apply_mtcnn(image)                     

@@ -4,7 +4,7 @@
 __all__ = ['get_session', 'create_detectors', 'create_embedding_models', 'create_quality_models', 'fill_cropped_image_serfiq',
            'fill_cropped_image_general', 'create_cropped_images', 'create_face_images', 'create_quality_images',
            'update_images', 'update_gender', 'update_age', 'update_emotion', 'update_race', 'update_cropped_images',
-           'update_face_images', 'update_embeddings', 'update_quality_images']
+           'update_face_images', 'update_embeddings', 'update_quality_images', 'update_ser_fiq', 'update_tface']
 
 # %% ../nbs/02_alchemy.ipynb 3
 import os
@@ -344,4 +344,61 @@ def update_embeddings(session, force_update: bool = False):
 def update_quality_images(session, serfiq=None, force_update: bool = False):
     
     update_ser_fiq(session, serfiq, force_update=force_update)
-    # update_tface(session, force_update=force_update)         
+    update_tface(session, serfiq, force_update=force_update)         
+
+# %% ../nbs/02_alchemy.ipynb 26
+def update_ser_fiq(session, serfiq, force_update: bool = False):
+    
+    # todo: Now it is only for ArcFace, it should be expanded to other embedding models.
+    query = session.query(QualityImage, CroppedImage) \
+        .join(QualityModel) \
+        .join(FaceImage, FaceImage.faceImage_id == QualityImage.faceImage_id) \
+        .join(EmbeddingModel) \
+        .join(CroppedImage, CroppedImage.croppedImage_id == FaceImage.croppedImage_id) \
+        .filter(EmbeddingModel.name == 'ArcFace',
+                QualityModel.name == 'ser_fiq')
+    #    .join(Image, Image.image_id == CroppedImage.image_id) \
+    #    
+
+    if not force_update:
+        query = query.filter(QualityImage.quality == None)
+    all_rows = (query.all())
+
+    for row in tqdm(all_rows, desc='Computing SER-FIQ quality'):              
+
+        aligned_img = row.CroppedImage.get_aligned_image(ser_fiq=serfiq) 
+        quality = serfiq.get_score(aligned_img, T=100)
+        
+        row.QualityImage.quality = quality
+        session.commit()
+
+# %% ../nbs/02_alchemy.ipynb 27
+def update_tface(session, serfiq, force_update: bool = False):
+    
+    #ser_fiq = self.ser_fiq
+    ser_fiq = None
+    net = network()
+    
+    # todo: Now it is only for ArcFace, it should be expanded to other embedding models. Is it ArcFace or another face recognition model?
+    query = session.query(QualityImage, CroppedImage) \
+        .join(QualityModel) \
+        .join(FaceImage, FaceImage.faceImage_id == QualityImage.faceImage_id) \
+        .join(EmbeddingModel) \
+        .join(CroppedImage, CroppedImage.croppedImage_id == FaceImage.croppedImage_id) \
+        .filter(EmbeddingModel.name == 'ArcFace', 
+                QualityModel.name == 'tface')
+        # .join(Image, Image.image_id == CroppedImage.image_id) 
+        
+
+    if not force_update:
+        query = query.filter(QualityImage.quality == None)
+    all_rows = (query.all())
+
+    for row in tqdm(all_rows[:5], desc='TRIM: Computing TFace quality'):              
+
+        aligned_img = row.CroppedImage.get_aligned_image(ser_fiq=serfiq) 
+        input_data = preprocess_tf_img(aligned_img)
+        quality = net(input_data).data.cpu().numpy().squeeze()           
+        
+        row.QualityImage.quality = quality
+        session.commit()

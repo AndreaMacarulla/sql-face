@@ -62,6 +62,6 @@ class SQLDataBase:
 
     def update_tables(self, attributes_to_update:List[str], force_update:bool=False, serfiq = None):        
         # update_images(self.session, self.databases, attributes_to_update, force_update = force_update)
-        update_cropped_images(self.session, force_update = force_update, serfiq = serfiq)
-        update_face_images(self.session, force_update = force_update)
-        # update_quality_images(self.session, serfiq, force_update = force_update)
+        # update_cropped_images(self.session, force_update = force_update, serfiq = serfiq)
+        # update_face_images(self.session, force_update = force_update)
+        update_quality_images(self.session, serfiq = serfiq, force_update = force_update)
