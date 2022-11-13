@@ -13,6 +13,8 @@ from sqlalchemy.ext.declarative import declarative_base
 from deepface import DeepFace
 import cv2
 import enum
+import numpy as np
+
 
 # %% ../nbs/03_tables.ipynb 4
 #To start table creation.
