@@ -3,7 +3,7 @@
 # %% auto 0
 __all__ = ['get_session', 'create_detectors', 'create_embedding_models', 'create_quality_models', 'fill_cropped_image_serfiq',
            'fill_cropped_image_general', 'create_cropped_images', 'create_face_images', 'create_quality_images',
-           'update_images', 'update_gender', 'update_age', 'update_emotion', 'update_race', 'update_cropped_images',
+           'update_gender', 'update_images', 'update_age', 'update_emotion', 'update_race', 'update_cropped_images',
            'update_face_images', 'update_embeddings', 'update_quality_images', 'update_ser_fiq', 'update_tface']
 
 # %% ../nbs/02_alchemy.ipynb 3
@@ -203,6 +203,19 @@ def create_quality_images(session):
                 session.commit()
 
 # %% ../nbs/02_alchemy.ipynb 16
+def update_gender(session, databases:List[FaceDataBase], force_update: bool = False):
+    for db in databases:
+        query = session.query(Image).filter(Image.source == db.source)
+        if not force_update:
+            query = query.filter(Image.gender == None)
+        all_img = (query.all())
+        for img in tqdm(all_img, desc='Update gender'):
+            filters = DeepFace.analyze(img_path=img.get_image(), actions=[
+                                       'gender'], enforce_detection=False)
+            img.gender = Gender(filters["gender"])
+            session.commit()
+
+# %% ../nbs/02_alchemy.ipynb 17
 def update_images(session, 
                 databases:List[FaceDataBase], 
                 attributes: List[str], 
@@ -221,19 +234,6 @@ def update_images(session,
     
     if 'race' in attributes:
         update_race(session, databases, force_update) 
-
-# %% ../nbs/02_alchemy.ipynb 17
-def update_gender(session, databases:List[FaceDataBase], force_update: bool = False):
-    for db in databases:
-        query = session.query(Image).filter(Image.source == db.source)
-        if not force_update:
-            query = query.filter(Image.gender == None)
-        all_img = (query.all())
-        for img in tqdm(all_img, desc='Update gender'):
-            filters = DeepFace.analyze(img_path=img.get_image(), actions=[
-                                       'gender'], enforce_detection=False)
-            img.gender = Gender(filters["gender"])
-            session.commit()
 
 # %% ../nbs/02_alchemy.ipynb 18
 def update_age(session, databases:List[FaceDataBase],force_update: bool = False):
