@@ -4,11 +4,13 @@
 __all__ = ['SER_FIQ', 'get_serfiq_model']
 
 # %% ../nbs/05_serfiq.ipynb 3
+import torch
+
 import numpy as np
 import mxnet as mx
 from mxnet import gluon
 import cv2
-import tensorflow as tf
+# import tensorflow as tf
 
 from sklearn.preprocessing import normalize
 from sklearn.metrics.pairwise import euclidean_distances
@@ -146,10 +148,15 @@ class SER_FIQ:
 # %% ../nbs/05_serfiq.ipynb 5
 def get_serfiq_model():
     
-    gpu_available = bool(tf.config.list_physical_devices('GPU'))
+    #TODO: Change for Google Drive.
+    gpu_available = False
+    # gpu_available = bool(tf.config.list_physical_devices('GPU'))
+    # gpu_available = torch.cuda.is_available()
     if gpu_available:
         serfiq = SER_FIQ(gpu=0)
-    else:
+    elif not gpu_available:
         serfiq = SER_FIQ(gpu=None)
+    else:
+        raise ValueError(f"Value of GPU: {gpu_available} not valid")
     
     return serfiq

@@ -8,3 +8,4 @@ website:
       - 03_tables.ipynb
       - 04_databases.ipynb
       - 05_serfiq.ipynb
+      - 06_tface.ipynb

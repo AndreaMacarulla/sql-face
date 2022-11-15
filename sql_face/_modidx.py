@@ -81,4 +81,5 @@ d = { 'settings': { 'branch': 'main',
                                  'sql_face.tables.Race': ('tables.html#race', 'sql_face/tables.py'),
                                  'sql_face.tables.Roll': ('tables.html#roll', 'sql_face/tables.py'),
                                  'sql_face.tables.Yaw': ('tables.html#yaw', 'sql_face/tables.py')},
-            'sql_face.tface': {}}}
+            'sql_face.tface': { 'sql_face.tface.compute_tf_quality': ('tface.html#compute_tf_quality', 'sql_face/tface.py'),
+                                'sql_face.tface.get_network': ('tface.html#get_network', 'sql_face/tface.py')}}}
