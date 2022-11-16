@@ -151,5 +151,5 @@ checklink/cookies.txt
 .quarto
 
 # Ignored by Andrea
-insightface/
+models/
 tface/
