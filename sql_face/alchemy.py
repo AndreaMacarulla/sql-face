@@ -345,7 +345,7 @@ def update_embeddings(session, force_update: bool = False):
 def update_quality_images(session, serfiq=None, force_update: bool = False):
     
     update_ser_fiq(session, serfiq = serfiq, force_update=force_update)
-    # update_tface(session, serfiq = serfiq, force_update=force_update)         
+    update_tface(session, serfiq = serfiq, force_update=force_update)         
 
 # %% ../nbs/02_alchemy.ipynb 26
 def update_ser_fiq(session, serfiq = None, force_update: bool = False):
@@ -377,7 +377,7 @@ def update_ser_fiq(session, serfiq = None, force_update: bool = False):
 def update_tface(session, serfiq, force_update: bool = False):
     ser_fiq = serfiq
 
-    net = get_network()
+    net, gpu_available = get_network()
 
     # todo: Now it is only for ArcFace, it should be expanded to other embedding models. 
     # Is it ArcFace or another face recognition model?
@@ -399,7 +399,7 @@ def update_tface(session, serfiq, force_update: bool = False):
     for row in tqdm(all_rows[:5], desc='TRIM: Computing TFace quality'):              
 
         aligned_img = row.CroppedImage.get_aligned_image(ser_fiq=serfiq) 
-        quality = compute_tf_quality(aligned_img, net)             
+        quality = compute_tf_quality(aligned_img, net, gpu_available=gpu_available)             
         
         row.QualityImage.quality = quality
         session.commit()
