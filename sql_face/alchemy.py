@@ -344,7 +344,7 @@ def update_embeddings(session, force_update: bool = False):
 # %% ../nbs/02_alchemy.ipynb 25
 def update_quality_images(session, serfiq=None, force_update: bool = False):
     
-    update_ser_fiq(session, serfiq = serfiq, force_update=force_update)
+    # update_ser_fiq(session, serfiq = serfiq, force_update=force_update)
     update_tface(session, serfiq = serfiq, force_update=force_update)         
 
 # %% ../nbs/02_alchemy.ipynb 26
@@ -359,7 +359,7 @@ def update_ser_fiq(session, serfiq = None, force_update: bool = False):
         .filter(EmbeddingModel.name == 'ArcFace',
                 QualityModel.name == 'ser_fiq')
     #    .join(Image, Image.image_id == CroppedImage.image_id) \
-    #    
+       
 
     if not force_update:
         query = query.filter(QualityImage.quality == None)

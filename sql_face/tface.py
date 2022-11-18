@@ -223,7 +223,7 @@ def compute_tf_quality(aligned_img:np.array, network, gpu_available:bool)->float
     if gpu_available:
         
         input_data = preprocess_tf_img(aligned_img).to('cuda:0')
-        pred_score = net(input_data).data.cuda().numpy().squeeze()    
+        pred_score = net(input_data).data.cuda()   
         
     elif not gpu_available:
         
@@ -233,6 +233,6 @@ def compute_tf_quality(aligned_img:np.array, network, gpu_available:bool)->float
     else:
         raise ValueError(f'Value {gpu_available} is not correct')
 
-    return pred_score
+    return float(pred_score)
 
 
