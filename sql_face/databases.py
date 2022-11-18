@@ -351,7 +351,7 @@ class SCFace(FaceDataBase):
 class ChokePoint(FaceDataBase):
     "Database of VideoFrames"
     def __init__(self, input_dir):
-        super().__init__(input_dir, source = 'ENFSI') 
+        super().__init__(input_dir, source = 'ChokePoint') 
 
     def get_path(self):
         return os.path.join(self.input_dir, 'enfsi', '2015')
