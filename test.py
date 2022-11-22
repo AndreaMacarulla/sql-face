@@ -1,6 +1,8 @@
 import os
 import pandas as pd
-#import xml.etree.ElementTree as ET
+
+from xml.dom.minidom import parse
+import xml.etree.ElementTree as ET
 
 home = os.path.expanduser("~")
 
@@ -10,18 +12,44 @@ gfolder = os.path.join(input_dir,'groundtruth')
 
 for gfile in os.listdir(gfolder):
     xmlfile = os.path.join(gfolder, gfile)
-    if os.path.isfile(xmlfile):
-        #tree = ET.parse(xmlfile)
-        #root = tree.getroot()
-        
 
-        df = pd.read_xml(xmlfile, parser='etree')
+    df0 = pd.DataFrame
+
+    if os.path.isfile(xmlfile):
+        frames = []
+        persons = []
+        left_eyes = []
+        right_eyes = []
+
+        tree = ET.parse(xmlfile)
+        root = tree.getroot()
+
+        for frame in root:
+            for person in frame:
+                frames.append(frame.attrib['number'])
+                persons.append(person.attrib['id'])
+
+
+        df = pd.DataFrame(list(zip(frames,persons)) , columns = ['frames','persons'])
+        df['videofile'] = gfile
+        #df0 = df0.append(df)
+
+    """  xml_data = open(xmlfile, 'r').read()  # Read file
+        root = ET.XML(xml_data)  # Parse XML
+
+
+        #root = tree.getroot()
+
+        with open(xmlfile) as file:
+            document = parse(file)
+
+        df = pd.read_xml(xmlfile, parser='etree',xpath=".//frame")
         #df = pd.read_xml(xmlfile,xpath=".//frame")
         df = df.dropna(subset=['person']) 
         # Resetting the indices using df.reset_index()
         df = df.reset_index(drop=True)
 
-
+ """
 # Ejemplo que podemos copiar
 """ import xml.etree.ElementTree as ETree
 import pandas as pd
