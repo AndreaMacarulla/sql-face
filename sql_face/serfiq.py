@@ -1077,9 +1077,9 @@ class SER_FIQ:
 
 # %% ../nbs/05_serfiq.ipynb 13
 def get_serfiq_model():
-    # gpu_available = False
+    gpu_available = False
     # gpu_available = bool(tf.config.list_physical_devices('GPU'))
-    gpu_available = torch.cuda.is_available()
+    # gpu_available = torch.cuda.is_available()
     if gpu_available:
         serfiq = SER_FIQ(gpu=0)
     elif not gpu_available:
