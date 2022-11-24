@@ -10,11 +10,10 @@ input_dir = os.path.join(home,'image_datasets','ChokePoint')
 
 gfolder = os.path.join(input_dir,'groundtruth')
 
+df0 = pd.DataFrame()
 for gfile in os.listdir(gfolder):
-    xmlfile = os.path.join(gfolder, gfile)
-
-    df0 = pd.DataFrame
-
+    xmlfile = os.path.join(gfolder, gfile)    
+    videoname = gfile.split('.')[0]
     if os.path.isfile(xmlfile):
         frames = []
         persons = []
@@ -31,10 +30,14 @@ for gfile in os.listdir(gfolder):
 
 
         df = pd.DataFrame(list(zip(frames,persons)) , columns = ['frames','persons'])
-        df['videofile'] = gfile
-        #df0 = df0.append(df)
+        df['videofile'] = videoname
+        if len(df0):
+            df0 = df0.append(df,ignore_index = True)
+        else:
+            df0 = df.copy()
+df0.to_excel('xml_with_persons.xlsx')           
 
-    """  xml_data = open(xmlfile, 'r').read()  # Read file
+"""  xml_data = open(xmlfile, 'r').read()  # Read file
         root = ET.XML(xml_data)  # Parse XML
 
 
