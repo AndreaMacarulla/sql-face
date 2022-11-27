@@ -13,6 +13,10 @@ from abc import ABC, abstractmethod
 from typing import List, Tuple
 from tqdm import tqdm
 
+#Read XML
+from xml.dom.minidom import parse
+import xml.etree.ElementTree as ET
+
 from deepface import DeepFace
 from sqlalchemy import or_
 from itertools import product
@@ -490,135 +494,75 @@ class ChokePoint(FaceDataBase):
         return os.path.join(self.input_dir, 'ChokePoint')
 
     def get_all_image_paths(self):
-        pass
+        groundtruth = self.get_groundtruth()
+        aip = [os.path.join(self.path,row.videofile,row.frame + '.jpg')
+        for index, row in groundtruth.iterrows()]
 
-    def identity_from_path(paths: List[str]) -> List[str]:
-        pass
-
-    def create_images(self, session):
-        gfolder = os.path.join(self.path,'groundtruth')
-
-        for gfile in os.listdir(gfolder):
-            xmlfile = os.path.join(gfolder, gfile)
-            if os.path.isfile(xmlfile):
-
-                df = pd.read_xml(xmlfile)
-                
+        return aip
         
 
-        # with open(os.path.join(folder, 'truth.csv')) as f:
-        #     #    , open(os.path.join(experts_path)) as exprt:
-        #     # reader_experts = pd.read_csv(exprt)
-        #     reader = csv.DictReader(f)
+    def identity_from_path(paths: List[str]) -> List[str]:    
+        pass
 
-        #     for line in reader:
-        #         idx = int(line['id'])
-        #         same = line['same'] == '1'
-        #         subfolder = os.path.join(self.path, f'Comparison {idx}')
-        #         query, references = self.get_query_reference(subfolder, idx)
+    def get_groundtruth(self):
+        gfolder = os.path.join(self.get_path(),'groundtruth') # groundtruth folder
 
-        #         reference_id = f'2015-{idx}'
+        df0 = pd.DataFrame()
+        for gfile in os.listdir(gfolder):
+            xmlfile = os.path.join(gfolder, gfile)    
+            videoname = gfile.split('.')[0]
+            if os.path.isfile(xmlfile):
+                frames = []
+                persons = []
+                # Available in  
+                #left_eyes = []
+                #right_eyes = []
 
-        #         if same:
-        #             query_id = reference_id
-        #         else:
-        #             query_id = f'{reference_id}-unknown'
+                tree = ET.parse(xmlfile)
+                root = tree.getroot()
 
-        #         qry_images = self.fill_query(session, query, query_id)
-        #         ref_images = self.fill_reference(n
-        #             session, references, reference_id)
+                for frame in root:
+                    for person in frame:
+                        frames.append(frame.attrib['number'])
+                        persons.append(person.attrib['id'])
 
-        #         # exp_line = reader_experts.loc[reader_experts['id'] == idx].to_numpy(dtype='float16')
-        #         # experts = exp_line[0, 1:]
 
-        #         #TODO: implement pairs of frames
-        #         # self.fill_enfsipair2015(session, qry_images, ref_images, same)
-        #         session.commit()
+                df = pd.DataFrame(list(zip(frames,persons)) , columns = ['frame','person'])
+                df['videofile'] = root.attrib['name']  #videoname
+                if len(df0):
+                    df0 = df0.append(df,ignore_index = True)
+                else:
+                    df0 = df.copy()
+        return df0
 
-    @staticmethod
-    def get_query_reference(subfolder: str, idx: int) -> Tuple[str, List[str]]:
-        query = os.path.join(subfolder, 'Questioned', f'CCTV_{idx}.avi')
-        # query = f'CCTV_{idx}.avi'
-        all_ref_files = os.listdir(os.path.join(subfolder, 'Reference'))
-        references = [os.path.join(subfolder, 'Reference', fname)
-                      for fname in all_ref_files if fname.endswith('.jpg')]
-        return query, references
 
-    @staticmethod
-    def fill_query(session, path, id):
-        # todo: what happens if all frames are not saved in the DB (i.e. frames missing?)
-        image_path = path
-        images = (
-            session.query(EnfsiVideoFrame)
-            .filter(EnfsiVideoFrame.path == image_path)
-            .all()
-        )
+            
+        
+    
+    def create_images(self, session):
 
-        if len(images) == 0:
-            images = []
-            video = cv2.VideoCapture(image_path)
-            n_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
-            for n_frame in range(n_frames):
-                image = EnfsiVideoFrame(
+        groundtruth = self.get_groundtruth()
+
+        paths = self.paths_not_in_db(session)   
+        #identities = self.identity_from_path(paths)
+        
+        for index, row in groundtruth.iterrows():
+            image_path=os.path.join(self.path,row.videofile,row.frame + '.jpg')
+
+            if not image_path in paths:
+
+                image = CPFrame(
                     path=image_path,
-                    identity=id,
-                    source="ENFSI",
-                    year=2015,
-                    source_video=os.path.basename(image_path),
-                    n_frame=n_frame
+                    identity=row.person,
+                    source=self.source,
+                    
+                    source_video=os.path.dirname(image_path),
+                    n_frame=int(row.frame)
                 )
-                session.add(image)
-                images.append(image)
-            session.commit()
-
-        return images
-
-    @staticmethod
-    def fill_reference(session, paths, id):
-        images = []
-        for path in paths:
-            image_path = path
-            image = (
-                session.query(EnfsiImage)
-                .filter(EnfsiImage.path == image_path)
-                .one_or_none()
-            )
-
-            if image is None:
-                image = EnfsiImage(
-                    path=image_path,
-                    identity=id,
-                    source="ENFSI",
-                    year=2015,
-                )
+            
                 session.add(image)
                 session.commit()
-            images.append(image)
 
-        return images
-
-    @staticmethod
-    def fill_enfsipair2015(session, qry_images, ref_images, same):
-
-        for qry_image, ref_image in product(qry_images, ref_images):
-
-            enfsi_pair = (
-                session.query(EnfsiPair2015)
-                .filter(EnfsiPair2015.first == qry_image,
-                        EnfsiPair2015.second == ref_image)
-                .one_or_none()
-            )
-
-            if enfsi_pair is None:
-                enfsi_pair = EnfsiPair2015(
-                    first=qry_image,
-                    second=ref_image,
-                    same=same,
-                    comparison=int(ref_image.identity.split('-')[-1])
-                )
-            session.add(enfsi_pair)
-
-        session.commit()
 
 # %% ../nbs/04_databases.ipynb 11
 DATABASES = {'lfw': LFW,
