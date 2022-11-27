@@ -4,7 +4,7 @@
 __all__ = ['SER_FIQ', 'get_serfiq_model']
 
 # %% ../nbs/05_serfiq.ipynb 3
-'import torch
+import torch
 
 import numpy as np
 import mxnet as mx
