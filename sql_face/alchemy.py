@@ -154,7 +154,8 @@ def create_cropped_images(session,
                     .all()
             )
 
-            for img in tqdm(images[:5], desc=f'TRIM Creating Cropped Images for detector {det.name}'):
+            # for img in tqdm(images[:5], desc=f'TRIM Creating Cropped Images for detector {det.name}'):
+            for img in tqdm(images, desc=f'Creating Cropped Images for detector {det.name}'):
                 cropped_image = CroppedImage()
                 cropped_image.images = img
                 cropped_image.detectors = det
@@ -210,7 +211,9 @@ def update_gender(session, databases:List[FaceDataBase], force_update: bool = Fa
         if not force_update:
             query = query.filter(Image.gender == None)
         all_img = (query.all())
-        for img in tqdm(all_img[:10], desc='TRIM Update gender'):
+
+        # for img in tqdm(all_img[:10], desc='TRIM Update gender'):
+        for img in tqdm(all_img, desc='Update gender'):
             filters = DeepFace.analyze(img_path=img.get_image(), actions=[
                                        'gender'], enforce_detection=False)
             img.gender = Gender(filters["gender"])
@@ -365,7 +368,8 @@ def update_ser_fiq(session, serfiq = None, force_update: bool = False):
         query = query.filter(QualityImage.quality == None)
     all_rows = (query.all())
 
-    for row in tqdm(all_rows[:5], desc='TRIM Computing SER-FIQ quality'):              
+    # for row in tqdm(all_rows[:5], desc='TRIM Computing SER-FIQ quality'):
+    for row in tqdm(all_rows, desc='Computing SER-FIQ quality'):             
 
         aligned_img = row.CroppedImage.get_aligned_image(ser_fiq=serfiq) 
         quality = serfiq.get_score(aligned_img, T=100)

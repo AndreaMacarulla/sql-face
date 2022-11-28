@@ -200,8 +200,8 @@ def network(device, eval_model='./SDD_FIQA_checkpoints_r50.pth'):
 # %% ../nbs/06_tface.ipynb 12
 def get_network():
 
-    gpu_available = False
-    # gpu_available = torch.cuda.is_available()
+    # gpu_available = False
+    gpu_available = torch.cuda.is_available()
 
     if gpu_available:
         device = 'cuda:0'
