@@ -24,13 +24,14 @@ import os
 import math
 from multiprocessing import Pool
 from itertools import repeat
-try:
-    from itertools import izip
-except ImportError:
-    izip = zip
+# Note: Coomen if there are issues with zip and izip.
+# try:
+#     from itertools import izip
+# except ImportError:
+#     izip = zip
+izip = zip
 
-
-# %% ../nbs/05_serfiq.ipynb 5
+# %% ../nbs/05_serfiq.ipynb 6
 def parse_lst_line(line):
   vec = line.strip().split("\t")
   assert len(vec)>=3
@@ -138,7 +139,7 @@ def preprocess(img, bbox=None, landmark=None, **kwargs):
     #warped = trans.warp(img, tform3, output_shape=_shape)
     return warped
 
-# %% ../nbs/05_serfiq.ipynb 7
+# %% ../nbs/05_serfiq.ipynb 8
 class MtcnnDetector(object):
     """
         Joint Face Detection and Alignment using Multi-task Cascaded Convolutional Neural Networks
@@ -785,7 +786,7 @@ class MtcnnDetector(object):
 
 
 
-# %% ../nbs/05_serfiq.ipynb 9
+# %% ../nbs/05_serfiq.ipynb 10
 def nms(boxes, overlap_threshold, mode='Union'):
     """
         non max suppression
@@ -949,7 +950,7 @@ def detect_first_stage_warpper( args ):
     return detect_first_stage(*args)
 
 
-# %% ../nbs/05_serfiq.ipynb 11
+# %% ../nbs/05_serfiq.ipynb 12
 class SER_FIQ:
     
     def __init__(self,
@@ -1075,7 +1076,7 @@ class SER_FIQ:
         # Normalize value based on alpha and r
         return 1 / (1+np.exp(-(alpha * (score - r))))
 
-# %% ../nbs/05_serfiq.ipynb 13
+# %% ../nbs/05_serfiq.ipynb 14
 def get_serfiq_model():
     # gpu_available = False
     # gpu_available = bool(tf.config.list_physical_devices('GPU'))
