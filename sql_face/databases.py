@@ -46,16 +46,29 @@ class FaceDataBase(ABC):
         pass
 
 
-    def paths_not_in_db(self, session):
+    def paths_in_db(self, session):        
         db_paths = (
             session.query(Image.path)
             .filter(Image.source == self.source)
             .all()
         )
         db_paths = [row.path for row in db_paths]
+        return db_paths
+
+    
+    def paths_not_in_db(self, session):
+        
+        """ 
+        db_paths = (
+            session.query(Image.path)
+            .filter(Image.source == self.source)
+            .all()
+        )
+        db_paths = [row.path for row in db_paths] 
+        """
 
         # paths that are not yet in db.
-        new_paths = set(self.all_image_paths) - set(db_paths)
+        new_paths = set(self.all_image_paths) - set(self.paths_in_db(session))
         return new_paths
 
     @staticmethod
@@ -509,8 +522,9 @@ class ChokePoint(FaceDataBase):
 
         df0 = pd.DataFrame()
         for gfile in os.listdir(gfolder):
-            xmlfile = os.path.join(gfolder, gfile)    
-            videoname = gfile.split('.')[0]
+            xmlfile = os.path.join(gfolder, gfile)  
+            # remove the extension of XML file. Its name contains more than 1 dot
+            subfolder = '.'.join(gfile.split('.')[:-1])
             if os.path.isfile(xmlfile):
                 frames = []
                 persons = []
@@ -527,41 +541,50 @@ class ChokePoint(FaceDataBase):
                         persons.append(person.attrib['id'])
 
 
-                df = pd.DataFrame(list(zip(frames,persons)) , columns = ['frame','person'])
-                df['videofile'] = root.attrib['name']  #videoname
+                df = pd.DataFrame(list(zip(frames,persons)) , columns = ['frame','person'])                           
+                df['videofile'] = subfolder
+
                 if len(df0):
                     df0 = df0.append(df,ignore_index = True)
                 else:
                     df0 = df.copy()
         return df0
-
-
-            
+          
         
     
     def create_images(self, session):
 
         groundtruth = self.get_groundtruth()
+        groundtruth['image_path'] = groundtruth.apply(lambda x:
+        os.path.join(self.path,x.videofile,x.frame + '.jpg'), axis = 1)
 
-        paths = self.paths_not_in_db(session)   
+        paths = self.paths_in_db(session)   
         #identities = self.identity_from_path(paths)
+
+        new_images = groundtruth.drop(groundtruth.index[groundtruth['image_path'].isin(paths)]).copy()
+        new_images.reset_index(drop = True)
         
-        for index, row in groundtruth.iterrows():
-            image_path=os.path.join(self.path,row.videofile,row.frame + '.jpg')
+        # commit every 300 and at the end
+        j = 300
+        for index, row in new_images.iterrows():
+            #image_path=os.path.join(self.path,row.videofile,row.frame + '.jpg')
 
-            if not image_path in paths:
-
-                image = CPFrame(
-                    path=image_path,
+            CPimage = CPFrame(
+                    path=row.image_path,
                     identity=row.person,
                     source=self.source,
                     
-                    source_video=os.path.dirname(image_path),
+                    source_video=os.path.dirname(row.image_path),
                     n_frame=int(row.frame)
                 )
             
-                session.add(image)
+            session.add(CPimage)
+            j -=1  
+            if not j:
+                j = 300
                 session.commit()
+
+        session.commit()
 
 
 # %% ../nbs/04_databases.ipynb 11
