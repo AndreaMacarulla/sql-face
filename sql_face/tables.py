@@ -219,12 +219,10 @@ class VideoFrame(VideoMixin, Image):
 # %% ../nbs/03_tables.ipynb 20
 class CPFrame(VideoFrame):
     # "ChokePoint video frame"
-    #__tablename__ = 'CPframe'
+    #__tablename__ = 'cpVideoFrame'
     __mapper_args__ = {
-        'polymorphic_identity': 'CPframe',
+        'polymorphic_identity': 'cpVideoFrame',
     }
-
-
 
     def get_image(self):
         """Especial method for getting the images in ChokePoint.
