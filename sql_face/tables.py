@@ -141,22 +141,7 @@ class Image(Base):
     def get_image(self):
         return cv2.imread(self.path)
 
-# %% ../nbs/03_tables.ipynb 9
-# class SCImage(Image):
-#     "SCFace database"
-    
-#     __tablename__ = 'scImage'
-#     scImage_id = Column(Integer, ForeignKey('image.image_id'), primary_key=True)
-
-#     sc_type = Column(String)
-#     distance = Column(Enum(Distance))
-#     infrared = Column(Boolean)
-
-#     __mapper_args__ = {
-#         'polymorphic_identity': 'scImage',
-#     }
-
-# %% ../nbs/03_tables.ipynb 11
+# %% ../nbs/03_tables.ipynb 10
 @declarative_mixin
 class SCFaceMixin:
     "SC Face database mixin"
@@ -168,7 +153,7 @@ class SCFaceMixin:
     def image_id(cls):
         return Column(Integer, ForeignKey('image.image_id'), primary_key=True)
 
-# %% ../nbs/03_tables.ipynb 12
+# %% ../nbs/03_tables.ipynb 11
 @declarative_mixin
 class EnfsiMixin:
     "ENFSI database mixin"
@@ -178,7 +163,7 @@ class EnfsiMixin:
     def image_id(cls):
         return Column(Integer, ForeignKey('image.image_id'), primary_key=True)
 
-# %% ../nbs/03_tables.ipynb 13
+# %% ../nbs/03_tables.ipynb 12
 @declarative_mixin
 class VideoMixin:
     source_video = Column(String)
@@ -195,28 +180,28 @@ class VideoMixin:
         if ret:
             return image
 
-# %% ../nbs/03_tables.ipynb 15
+# %% ../nbs/03_tables.ipynb 14
 class EnfsiImage(EnfsiMixin, Image):
     __tablename__ = 'enfsiImage'
     __mapper_args__ = {
         'polymorphic_identity': 'enfsiImage',
     }
 
-# %% ../nbs/03_tables.ipynb 17
+# %% ../nbs/03_tables.ipynb 16
 class SCImage(SCFaceMixin, Image):    
     __tablename__ = 'scImage'
     __mapper_args__ = {
         'polymorphic_identity': 'scImage',
     }
 
-# %% ../nbs/03_tables.ipynb 19
+# %% ../nbs/03_tables.ipynb 18
 class VideoFrame(VideoMixin, Image):
     __tablename__ = 'videoFrame'
     __mapper_args__ = {
         'polymorphic_identity': 'videoFrame',
     }
 
-# %% ../nbs/03_tables.ipynb 20
+# %% ../nbs/03_tables.ipynb 19
 class CPFrame(VideoFrame):
     # "ChokePoint video frame"
     #__tablename__ = 'cpVideoFrame'
@@ -231,21 +216,21 @@ class CPFrame(VideoFrame):
         """
         return Image.get_image(self)
 
-# %% ../nbs/03_tables.ipynb 21
+# %% ../nbs/03_tables.ipynb 20
 class EnfsiVideoFrame(EnfsiMixin, VideoMixin, Image):
     __tablename__ = 'enfsiVideoFrame'
     __mapper_args__ = {
         'polymorphic_identity': 'enfsiVideoFrame',
     }
 
-# %% ../nbs/03_tables.ipynb 22
+# %% ../nbs/03_tables.ipynb 23
 class Detector(Base):
     "Detector SQL class"
     __tablename__ = "detector"
     detector_id = Column(Integer, primary_key=True)
     name = Column(String)
 
-# %% ../nbs/03_tables.ipynb 23
+# %% ../nbs/03_tables.ipynb 24
 class CroppedImage(Base):
     __tablename__ = 'croppedImage'
     croppedImage_id = Column(Integer, primary_key=True)
@@ -285,13 +270,13 @@ class CroppedImage(Base):
             enforce_detection=True)
             return aligned_img*255
 
-# %% ../nbs/03_tables.ipynb 24
+# %% ../nbs/03_tables.ipynb 25
 class EmbeddingModel(Base):
     __tablename__ = "embeddingModel"
     embeddingModel_id = Column(Integer, primary_key=True)
     name = Column(String)
 
-# %% ../nbs/03_tables.ipynb 25
+# %% ../nbs/03_tables.ipynb 26
 class FaceImage(Base):
     __tablename__ = 'faceImage'
     faceImage_id = Column(Integer, primary_key=True)
@@ -305,13 +290,13 @@ class FaceImage(Base):
     croppedImages = relationship("CroppedImage", foreign_keys=[croppedImage_id])
     embeddingModels = relationship("EmbeddingModel", foreign_keys=[embeddingModel_id])
 
-# %% ../nbs/03_tables.ipynb 26
+# %% ../nbs/03_tables.ipynb 27
 class QualityModel(Base):
     __tablename__ = "qualityModel"
     qualityModel_id = Column(Integer, primary_key=True)
     name = Column(String)
 
-# %% ../nbs/03_tables.ipynb 27
+# %% ../nbs/03_tables.ipynb 28
 class QualityImage(Base):
     __tablename__ = 'qualityImage'
     qualityImage_id = Column(Integer, primary_key=True)
