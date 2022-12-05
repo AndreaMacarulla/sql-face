@@ -218,14 +218,18 @@ class VideoFrame(VideoMixin, Image):
 
 # %% ../nbs/03_tables.ipynb 20
 class CPFrame(VideoFrame):
-    "ChokePoint video frame"
+    # "ChokePoint video frame"
+    #__tablename__ = 'cpVideoFrame'
+    __mapper_args__ = {
+        'polymorphic_identity': 'cpVideoFrame',
+    }
 
     def get_image(self):
         """Especial method for getting the images in ChokePoint.
         Following indications as in (Image(Grandfather)->VideoFrame(Father)->CPFrame(Grandchild))
         https://stackoverflow.com/questions/18117974/calling-a-parents-parents-method-which-has-been-overridden-by-the-parent
         """
-        Image.get_image(self)
+        return Image.get_image(self)
 
 # %% ../nbs/03_tables.ipynb 21
 class EnfsiVideoFrame(EnfsiMixin, VideoMixin, Image):

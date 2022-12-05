@@ -154,8 +154,8 @@ def create_cropped_images(session,
                     .all()
             )
 
-            # for img in tqdm(images[:5], desc=f'TRIM Creating Cropped Images for detector {det.name}'):
-            for img in tqdm(images, desc=f'Creating Cropped Images for detector {det.name}'):
+            for img in tqdm(images[:5], desc=f'TRIM Creating Cropped Images for detector {det.name}'):
+            #for img in tqdm(images, desc=f'Creating Cropped Images for detector {det.name}'):
                 cropped_image = CroppedImage()
                 cropped_image.images = img
                 cropped_image.detectors = det
