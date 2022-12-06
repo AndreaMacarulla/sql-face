@@ -139,8 +139,9 @@ class Image(Base):
 
     croppedImages = relationship("CroppedImage", back_populates="images", lazy='subquery')
 
-    def get_image(self):
-        return cv2.imread(self.path)
+    def get_image(self, input_dir:str):
+        abs_path = os.path.join(input_dir, self.path)
+        return cv2.imread(abs_path)
 
 # %% ../nbs/03_tables.ipynb 10
 @declarative_mixin
@@ -174,8 +175,9 @@ class VideoMixin:
     def image_id(cls):
         return Column(Integer, ForeignKey('image.image_id'), primary_key=True)
 
-    def get_image(self):
-        video = cv2.VideoCapture(self.path)
+    def get_image(self, input_dir):
+        abs_path = os.path.join(input_dir,self.path)
+        video = cv2.VideoCapture(abs_path)
         video.set(1, self.n_frame)
         ret, image = video.read()
         if ret:
@@ -210,12 +212,12 @@ class CPFrame(VideoFrame):
         'polymorphic_identity': 'cpVideoFrame',
     }
 
-    def get_image(self):
+    def get_image(self, input_dir):
         """Especial method for getting the images in ChokePoint.
         Following indications as in (Image(Grandfather)->VideoFrame(Father)->CPFrame(Grandchild))
         https://stackoverflow.com/questions/18117974/calling-a-parents-parents-method-which-has-been-overridden-by-the-parent
         """
-        return Image.get_image(self)
+        return Image.get_image(self, input_dir)
 
 # %% ../nbs/03_tables.ipynb 20
 class EnfsiVideoFrame(EnfsiMixin, VideoMixin, Image):
@@ -350,24 +352,24 @@ class CroppedImage(Base):
     detectors = relationship("Detector", foreign_keys=[detector_id])
     faceImages = relationship("FaceImage", back_populates="croppedImages")
 
-    def get_cropped_image(self):
-        image = self.images.get_image()
+    def get_cropped_image(self, input_dir):
+        image = self.images.get_image(input_dir)
         if self.face_detected:
             return image[self.bounding_box[1]:self.bounding_box[1] + self.bounding_box[3],
                    self.bounding_box[0]:self.bounding_box[0] + self.bounding_box[2], :]
         else:
             return image
 
-    def get_aligned_image(self, target_size:Tuple[int,int]=(112,112), ser_fiq = None):
+    def get_aligned_image(self, input_dir, target_size:Tuple[int,int]=(112,112), ser_fiq = None):
         
         if self.detectors.name == 'mtcnn_serfiq':
-            image = self.images.get_image() 
+            image = self.images.get_image(input_dir) 
             aligned_image = ser_fiq.apply_mtcnn(image)                     
             return np.transpose(aligned_image, (1,2,0)) 
         
         else:
-            
-            aligned_img = DeepFace.detectFace(img_path = self.images.path, 
+            img_abs_path = os.path.join(input_dir, self.images.path)
+            aligned_img = DeepFace.detectFace(img_path = img_abs_path, 
             target_size = target_size, 
             detector_backend = self.detectors.name, 
             align=True,
