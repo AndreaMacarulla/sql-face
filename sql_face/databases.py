@@ -656,6 +656,9 @@ class ChokePoint(FaceDataBase):
                 df = pd.DataFrame(list(zip(frames,persons)) , columns = ['frame','person'])                           
                 df['videofile'] = subfolder
 
+                #Remove frames with more than 1 identity
+                df = df.drop_duplicates(subset = 'frame', keep = False)
+
                 if len(df0):
                     df0 = df0.append(df,ignore_index = True)
                 else:
