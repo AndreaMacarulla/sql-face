@@ -17,6 +17,9 @@ import cv2
 import enum
 import numpy as np
 
+import os
+from sql_face.core import input_dir
+
 
 # %% ../nbs/03_tables.ipynb 4
 #To start table creation.
