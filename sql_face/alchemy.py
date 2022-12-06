@@ -134,7 +134,7 @@ def fill_cropped_image_general(cr_img: CroppedImage, input_dir, **kwargs):
 
 
 # %% ../nbs/02_alchemy.ipynb 12
-def create_cropped_images(session,input_dir:str, serfiq = None):
+def create_cropped_images(session, input_dir:str, serfiq = None):
         
         all_detectors = (session.query(Detector).all())
         for det in all_detectors:
@@ -270,7 +270,7 @@ def update_race(session, databases:List[FaceDataBase], force_update: bool = Fals
             session.commit()
 
 # %% ../nbs/02_alchemy.ipynb 20
-def update_images(session, 
+def update_images(session, input_dir,
                 databases:List[FaceDataBase], 
                 attributes: List[str], 
                 force_update: bool = False
@@ -278,16 +278,16 @@ def update_images(session,
 
     "Updates Image attributes"
     if 'gender' in attributes:
-        update_gender(session, databases, force_update)
+        update_gender(session, input_dir, databases, force_update)
 
     if 'age' in attributes:
-        update_age(session, databases, force_update)
+        update_age(session, input_dir, databases, force_update)
 
     if 'emotion' in attributes:
-        update_emotion(session, databases, force_update)
+        update_emotion(session, input_dir, databases, force_update)
     
     if 'race' in attributes:
-        update_race(session, databases, force_update) 
+        update_race(session, input_dir, databases, force_update) 
 
 # %% ../nbs/02_alchemy.ipynb 22
 def update_cropped_images(session, input_dir:str, force_update: bool = False, serfiq = None):

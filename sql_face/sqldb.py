@@ -57,8 +57,8 @@ class SQLDataBase:
         
 
         create_cropped_images(self.session, self.input_dir, serfiq) 
-        create_face_images(self.session, self.input_dir)
-        create_quality_images(self.session, self.input_dir)
+        create_face_images(self.session)
+        create_quality_images(self.session)
 
     def update_tables(self, attributes_to_update:List[str], force_update:bool=False, serfiq = None):        
         update_images(self.session, self.input_dir, self.databases, attributes_to_update, force_update = force_update)
