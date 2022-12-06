@@ -407,8 +407,7 @@ class Enfsi(FaceDataBase):
                         dtype='float16')
                     experts = exp_line[0, 1:]
 
-                    # self.fill_enfsipair(session, qry_image,
-                    #                    ref_image, same, experts)
+                    self.fill_enfsipair(session, qry_image, ref_image, same, experts)
                     session.commit()
 
     @staticmethod
@@ -459,6 +458,26 @@ class Enfsi(FaceDataBase):
             session.commit()
         return image
 
+
+    def fill_enfsipair(self, session, qry_image, ref_image, same, experts):
+
+        enfsi_pair = (
+            session.query(EnfsiPair)
+            .filter(EnfsiPair.first == qry_image,
+                    EnfsiPair.second == ref_image)
+            .one_or_none()
+        )
+
+        if enfsi_pair is None:
+            enfsi_pair = EnfsiPair(
+                first=qry_image,
+                second=ref_image,
+                same=same,
+                ExpertsLLR=experts)
+            session.add(enfsi_pair)
+
+        session.commit()
+
 # %% ../nbs/04_databases.ipynb 10
 class Enfsi2015(FaceDataBase):
     def __init__(self, input_dir):
@@ -503,8 +522,7 @@ class Enfsi2015(FaceDataBase):
                 # exp_line = reader_experts.loc[reader_experts['id'] == idx].to_numpy(dtype='float16')
                 # experts = exp_line[0, 1:]
 
-                #TODO: implement pairs of frames
-                # self.fill_enfsipair2015(session, qry_images, ref_images, same)
+                self.fill_enfsipair2015(session, qry_images, ref_images, same)
                 session.commit()
 
     @staticmethod

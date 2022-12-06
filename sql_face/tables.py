@@ -2,7 +2,8 @@
 
 # %% auto 0
 __all__ = ['Image', 'SCFaceMixin', 'EnfsiMixin', 'VideoMixin', 'EnfsiImage', 'SCImage', 'VideoFrame', 'CPFrame',
-           'EnfsiVideoFrame', 'Detector', 'CroppedImage', 'EmbeddingModel', 'FaceImage', 'QualityModel', 'QualityImage']
+           'EnfsiVideoFrame', 'Pair', 'EnfsiPair', 'EnfsiPair2015', 'Detector', 'CroppedImage', 'EmbeddingModel',
+           'FaceImage', 'QualityModel', 'QualityImage']
 
 # %% ../nbs/03_tables.ipynb 3
 from typing import Tuple
@@ -223,14 +224,117 @@ class EnfsiVideoFrame(EnfsiMixin, VideoMixin, Image):
         'polymorphic_identity': 'enfsiVideoFrame',
     }
 
+# %% ../nbs/03_tables.ipynb 22
+class Pair:
+    def __init__(self, first:Image, second:Image):
+        self.first = first
+        self.second = second
+        self.same_identity = self.is_same()
+
+    def is_same(self):
+        """
+        Returns whether or not the two images in this pair share the same
+        identity or not.
+
+        :return: bool
+        """
+        return self.first.identity == self.second.identity and self.first.source == self.second.source
+
+
+    def get_category(self, im_category_list, fi_cat_list, detector, embedding_model):
+        return tuple((self.first.get_category(im_category_list, fi_cat_list, detector, embedding_model),
+                      self.second.get_category(im_category_list, fi_cat_list, detector, embedding_model)))
+
+    def is_valid(self, detector: str):
+        return self.first.is_valid(detector=detector) and self.second.is_valid(detector=detector)
+
+    def pair_category_str(self, category_list):
+        pair_category = ';'.join(self.get_category(self, category_list))
+        return f'({pair_category})'
+
+    def make_cropped_pair(self, detector):
+        first_cropped_image = self.first.make_cropped_image(detector=detector)
+        second_cropped_image = self.second.make_cropped_image(detector=detector)
+        return CroppedPair(first_cropped_image, second_cropped_image)
+
+    def make_face_image_pair(self, session, detector, embedding_model):
+        if embedding_model == 'FaceVACs':
+            facevacs_pair = (session.query(FaceVACsPair)
+                             .filter(FaceVACsPair.first_id == self.first_id,
+                                     FaceVACsPair.second_id == self.second_id)
+                             .one_or_none()
+                             )
+            return facevacs_pair
+        else:
+            first_face_image = (session.query(FaceImage)
+                                .join(CroppedImage)
+                                .join(Detector)
+                                .join(EmbeddingModel)
+                                .filter(CroppedImage.image_id == self.first.image_id,
+                                        CroppedImage.face_detected == True,
+                                        Detector.name == detector,
+                                        EmbeddingModel.name == embedding_model)
+                                .one_or_none()
+                                )
+            second_face_image = (session.query(FaceImage)
+                                 .join(CroppedImage)
+                                 .join(Detector)
+                                 .join(EmbeddingModel)
+                                 .filter(CroppedImage.image_id == self.second.image_id,
+                                         CroppedImage.face_detected == True,
+                                         Detector.name == detector,
+                                         EmbeddingModel.name == embedding_model)
+                                 .one_or_none()
+                                 )
+
+            return FacePair(first_face_image, second_face_image, self.same_identity)
+
 # %% ../nbs/03_tables.ipynb 23
+class EnfsiPair(Base, Pair):
+    __tablename__ = "enfsiPair"
+    enfsiPair_id = Column(Integer, primary_key=True)
+
+    same = Column(Boolean)
+    ExpertsLLR = Column(PickleType)
+
+    first_id = Column(Integer, ForeignKey('enfsiImage.image_id'))
+    # todo: does it make a difference to fill with images or enfsi images here?
+    second_id = Column(Integer, ForeignKey('enfsiImage.image_id'))
+
+    first = relationship("EnfsiImage", foreign_keys=[first_id])
+    second = relationship("EnfsiImage", foreign_keys=[second_id])
+
+    enfsi_type = Column(String)
+    __mapper_args__ = {
+        'polymorphic_identity': 'enfsiPair',
+        'polymorphic_on': enfsi_type
+    }
+
+# %% ../nbs/03_tables.ipynb 24
+class EnfsiPair2015(EnfsiPair):
+    __tablename__ = 'enfsiPair2015'
+    enfsiPair2015_id = Column(Integer, ForeignKey('enfsiPair.enfsiPair_id'), primary_key=True)
+
+    comparison = Column(Integer)
+
+    # todo: repeated column in enfsipair and enfsipair2015. Should be deleted from enfsipair2015.
+    first_id = Column(Integer, ForeignKey('enfsiVideoFrame.image_id'))
+    first = relationship("EnfsiVideoFrame", foreign_keys=[first_id])
+
+
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'enfsiPair2015',
+    }
+
+# %% ../nbs/03_tables.ipynb 26
 class Detector(Base):
     "Detector SQL class"
     __tablename__ = "detector"
     detector_id = Column(Integer, primary_key=True)
     name = Column(String)
 
-# %% ../nbs/03_tables.ipynb 24
+# %% ../nbs/03_tables.ipynb 27
 class CroppedImage(Base):
     __tablename__ = 'croppedImage'
     croppedImage_id = Column(Integer, primary_key=True)
@@ -270,13 +374,13 @@ class CroppedImage(Base):
             enforce_detection=True)
             return aligned_img*255
 
-# %% ../nbs/03_tables.ipynb 25
+# %% ../nbs/03_tables.ipynb 28
 class EmbeddingModel(Base):
     __tablename__ = "embeddingModel"
     embeddingModel_id = Column(Integer, primary_key=True)
     name = Column(String)
 
-# %% ../nbs/03_tables.ipynb 26
+# %% ../nbs/03_tables.ipynb 29
 class FaceImage(Base):
     __tablename__ = 'faceImage'
     faceImage_id = Column(Integer, primary_key=True)
@@ -290,13 +394,13 @@ class FaceImage(Base):
     croppedImages = relationship("CroppedImage", foreign_keys=[croppedImage_id])
     embeddingModels = relationship("EmbeddingModel", foreign_keys=[embeddingModel_id])
 
-# %% ../nbs/03_tables.ipynb 27
+# %% ../nbs/03_tables.ipynb 30
 class QualityModel(Base):
     __tablename__ = "qualityModel"
     qualityModel_id = Column(Integer, primary_key=True)
     name = Column(String)
 
-# %% ../nbs/03_tables.ipynb 28
+# %% ../nbs/03_tables.ipynb 31
 class QualityImage(Base):
     __tablename__ = 'qualityImage'
     qualityImage_id = Column(Integer, primary_key=True)
