@@ -17,6 +17,9 @@ import cv2
 import enum
 import numpy as np
 
+import os
+from sql_face.core import input_dir
+
 
 # %% ../nbs/03_tables.ipynb 4
 #To start table creation.
@@ -140,7 +143,7 @@ class Image(Base):
     croppedImages = relationship("CroppedImage", back_populates="images", lazy='subquery')
 
     def get_image(self):
-        return cv2.imread(self.path)
+        return cv2.imread(os.path.join(input_dir,self.path))
 
 # %% ../nbs/03_tables.ipynb 10
 @declarative_mixin

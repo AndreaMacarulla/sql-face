@@ -25,6 +25,8 @@ from itertools import product
 from sql_face.tables import *
 from sql_face.tables import Gender, Age, Emotion, Race, Distance, Yaw, Pitch, Roll
 
+from sql_face.core import input_dir
+
 # %% ../nbs/04_databases.ipynb 4
 class FaceDataBase(ABC):
     def __init__(self, 
@@ -108,8 +110,10 @@ class LFW(FaceDataBase):
         for person in os.listdir(self.path):
             if os.path.isdir(os.path.join(self.path, person)):
                 person_dir = os.path.join(self.path, person)
-                for image_file in os.listdir(person_dir):
-                    image_path = os.path.join(person_dir, image_file)
+                for image_file in os.listdir(person_dir):                  
+                    #Change to relative path
+                    #image_path = os.path.join(person_dir, image_file)
+                    image_path = os.path.join('lfw',person,image_file)
                     paths.append(image_path)
         return paths
 
@@ -155,7 +159,9 @@ class UTKFace(FaceDataBase):
     def get_all_image_paths(self) -> List[str]:
         paths = []
         for image_file in os.listdir(self.path):
-            image_path = os.path.join(self.path, image_file)
+            #Change to relative paths
+            #image_path = os.path.join(self.path, image_file)
+            image_path = os.path.join('UTKface', image_file)
             paths.append(image_path)
         return paths
 
@@ -620,7 +626,7 @@ class ChokePoint(FaceDataBase):
 
     def get_all_image_paths(self):
         groundtruth = self.get_groundtruth()
-        aip = [os.path.join(self.path,row.videofile,row.frame + '.jpg')
+        aip = [os.path.join(self.source,row.videofile,row.frame + '.jpg')
         for index, row in groundtruth.iterrows()]
 
         return aip
