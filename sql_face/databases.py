@@ -445,7 +445,7 @@ class Enfsi(FaceDataBase):
         )
 
         if image is None:
-            annotation_path = os.path.join(input_dir,
+            annotation_path = os.path.join(self.input_dir,
                 folder, os.path.splitext(path)[0] + ".json")
             with open(os.path.join(annotation_path)) as ann:
                 annotation = json.load(ann)
