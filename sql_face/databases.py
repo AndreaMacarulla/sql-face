@@ -25,7 +25,6 @@ from itertools import product
 from sql_face.tables import *
 from sql_face.tables import Gender, Age, Emotion, Race, Distance, Yaw, Pitch, Roll
 
-from sql_face.core import input_dir
 
 # %% ../nbs/04_databases.ipynb 4
 class FaceDataBase(ABC):
@@ -386,6 +385,7 @@ class Enfsi(FaceDataBase):
     def create_images(self, session):
         for year in self.years:
             folder = os.path.join(self.path, str(year))
+            rel_path = os.path.join('enfsi',str(year))
             experts_path = os.path.join(folder, "Experts_LLR.csv")
 
             with open(os.path.join(folder, 'truth.csv')) as f, open(os.path.join(experts_path)) as exprt:
@@ -404,10 +404,11 @@ class Enfsi(FaceDataBase):
                     else:
                         query_id = f'{reference_id}-unknown'
 
+                    #change folder by rel_path
                     qry_image = self.fill_qry_ref(
-                        session, folder, query, query_id, year)
+                        session, rel_path, query, query_id, year)
                     ref_image = self.fill_qry_ref(
-                        session, folder, reference, reference_id, year)
+                        session, rel_path, reference, reference_id, year)
 
                     exp_line = reader_experts.loc[reader_experts['id'] == idx].to_numpy(
                         dtype='float16')
@@ -435,6 +436,7 @@ class Enfsi(FaceDataBase):
         return query, reference
 
     def fill_qry_ref(self, session, folder, path, id, year):
+        # folder is relative
         image_path = os.path.join(folder, path)
         image = (
             session.query(EnfsiImage)
@@ -443,7 +445,7 @@ class Enfsi(FaceDataBase):
         )
 
         if image is None:
-            annotation_path = os.path.join(
+            annotation_path = os.path.join(input_dir,
                 folder, os.path.splitext(path)[0] + ".json")
             with open(os.path.join(annotation_path)) as ann:
                 annotation = json.load(ann)
@@ -499,6 +501,7 @@ class Enfsi2015(FaceDataBase):
         pass
 
     def create_images(self, session):
+        rel_path = os.path.join('enfsi','2015')
         folder = os.path.join(self.path)
         # todo: current experts file is wrong. Change it for the proper one or remove the option.
         # experts_path = os.path.join(folder, "Experts_LLR.csv")
@@ -511,8 +514,10 @@ class Enfsi2015(FaceDataBase):
             for line in reader:
                 idx = int(line['id'])
                 same = line['same'] == '1'
-                subfolder = os.path.join(self.path, f'Comparison {idx}')
-                query, references = self.get_query_reference(subfolder, idx)
+                
+                #subfolder = os.path.join(self.path, f'Comparison {idx}')
+                subfolder = os.path.join(rel_path, f'Comparison {idx}')
+                query, references = self.get_query_reference(self.input_dir, subfolder, idx)
 
                 reference_id = f'2015-{idx}'
 
@@ -521,7 +526,7 @@ class Enfsi2015(FaceDataBase):
                 else:
                     query_id = f'{reference_id}-unknown'
 
-                qry_images = self.fill_query(session, query, query_id)
+                qry_images = self.fill_query(session, self.input_dir, query, query_id)
                 ref_images = self.fill_reference(
                     session, references, reference_id)
 
@@ -532,16 +537,16 @@ class Enfsi2015(FaceDataBase):
                 session.commit()
 
     @staticmethod
-    def get_query_reference(subfolder: str, idx: int) -> Tuple[str, List[str]]:
+    def get_query_reference(input_dir, subfolder: str, idx: int) -> Tuple[str, List[str]]:
         query = os.path.join(subfolder, 'Questioned', f'CCTV_{idx}.avi')
         # query = f'CCTV_{idx}.avi'
-        all_ref_files = os.listdir(os.path.join(subfolder, 'Reference'))
+        all_ref_files = os.listdir(os.path.join(input_dir, subfolder, 'Reference'))
         references = [os.path.join(subfolder, 'Reference', fname)
                       for fname in all_ref_files if fname.endswith('.jpg')]
         return query, references
 
     @staticmethod
-    def fill_query(session, path, id):
+    def fill_query(session, input_dir, path, id):
         # todo: what happens if all frames are not saved in the DB (i.e. frames missing?)
         image_path = path
         images = (
@@ -552,7 +557,7 @@ class Enfsi2015(FaceDataBase):
 
         if len(images) == 0:
             images = []
-            video = cv2.VideoCapture(image_path)
+            video = cv2.VideoCapture(os.path.join(input_dir, image_path))
             n_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
             for n_frame in range(n_frames):
                 image = EnfsiVideoFrame(
