@@ -35,6 +35,7 @@ class FaceDataBase(ABC):
         self.input_dir= input_dir
         self.source = source
         self.path = self.get_path()
+        self.rel_path = self.get_rel_path()
         self.all_image_paths = self.get_all_image_paths()
 
     
@@ -42,6 +43,9 @@ class FaceDataBase(ABC):
     def get_path(self):
         pass
 
+    @abstractmethod
+    def get_rel_path(self):
+        pass
     
     @abstractmethod
     def get_all_image_paths(self):
@@ -104,6 +108,11 @@ class LFW(FaceDataBase):
     def get_path(self)->str:
         return os.path.join(self.input_dir, 'lfw')
 
+    def get_rel_path(self)->str:
+        return 'lfw'
+
+
+
     def get_all_image_paths(self)->List[str]:
         paths = []
         for person in os.listdir(self.path):
@@ -112,7 +121,7 @@ class LFW(FaceDataBase):
                 for image_file in os.listdir(person_dir):                  
                     #Change to relative path
                     #image_path = os.path.join(person_dir, image_file)
-                    image_path = os.path.join('lfw',person,image_file)
+                    image_path = os.path.join(self.rel_path,person,image_file)
                     paths.append(image_path)
         return paths
 
@@ -129,6 +138,8 @@ class XQLFW(FaceDataBase):
     def get_path(self)->str:
         return os.path.join(self.input_dir, 'xqlfw')
 
+    def get_rel_path(self)->str:
+        return 'xqlfw'
 
     def get_all_image_paths(self) -> List[str]:
         paths = []
@@ -136,7 +147,7 @@ class XQLFW(FaceDataBase):
             if os.path.isdir(os.path.join(self.path, person)):
                 person_dir = os.path.join(self.path, person)
                 for image_file in os.listdir(person_dir):
-                    image_path = os.path.join(person_dir, image_file)
+                    image_path = os.path.join(self.rel_path, person, image_file)
                     paths.append(image_path)
         return paths
 
@@ -154,13 +165,16 @@ class UTKFace(FaceDataBase):
     def get_path(self)->str:
         return os.path.join(self.input_dir, 'UTKface')
 
+    def get_rel_path(self)->str:
+        return 'UTKface'
+
 
     def get_all_image_paths(self) -> List[str]:
         paths = []
         for image_file in os.listdir(self.path):
             #Change to relative paths
             #image_path = os.path.join(self.path, image_file)
-            image_path = os.path.join('UTKface', image_file)
+            image_path = os.path.join(self.rel_path, image_file)
             paths.append(image_path)
         return paths
 
@@ -238,15 +252,17 @@ class SCFace(FaceDataBase):
     def get_path(self)->str:
         return os.path.join(self.input_dir, 'SCface')
 
+    def get_rel_path(self)->str:
+        return 'SCface'
     
     def get_all_image_paths(self) -> List[str]:
         paths = []
         for folder in self.folders:
-            abs_folder = os.path.join(self.path, folder)
+            abs_folder = os.path.join(self.path, folder)            
             for image_file in os.listdir(abs_folder):
                 if image_file == 'meta.txt':
                     continue
-                image_path = os.path.join(abs_folder, image_file)
+                image_path = os.path.join(self.rel_path, folder, image_file)
                 paths.append(image_path)
         return paths
 
@@ -375,6 +391,9 @@ class Enfsi(FaceDataBase):
 
     def get_path(self):
         return os.path.join(self.input_dir, 'enfsi')
+
+    def get_rel_path(self)->str:
+        return 'enfsi'
         
     def get_all_image_paths(self):
         pass
@@ -385,7 +404,7 @@ class Enfsi(FaceDataBase):
     def create_images(self, session):
         for year in self.years:
             folder = os.path.join(self.path, str(year))
-            rel_path = os.path.join('enfsi',str(year))
+            rel_path = os.path.join(self.rel_path, str(year))
             experts_path = os.path.join(folder, "Experts_LLR.csv")
 
             with open(os.path.join(folder, 'truth.csv')) as f, open(os.path.join(experts_path)) as exprt:
@@ -494,6 +513,9 @@ class Enfsi2015(FaceDataBase):
     def get_path(self):
         return os.path.join(self.input_dir, 'enfsi', '2015')
 
+    def get_rel_path(self)->str:
+        return os.path.join('enfsi', '2015')
+
     def get_all_image_paths(self):
         pass
 
@@ -501,7 +523,7 @@ class Enfsi2015(FaceDataBase):
         pass
 
     def create_images(self, session):
-        rel_path = os.path.join('enfsi','2015')
+        #rel_path = os.path.join('enfsi','2015')
         folder = os.path.join(self.path)
         # todo: current experts file is wrong. Change it for the proper one or remove the option.
         # experts_path = os.path.join(folder, "Experts_LLR.csv")
@@ -516,7 +538,7 @@ class Enfsi2015(FaceDataBase):
                 same = line['same'] == '1'
                 
                 #subfolder = os.path.join(self.path, f'Comparison {idx}')
-                subfolder = os.path.join(rel_path, f'Comparison {idx}')
+                subfolder = os.path.join(self.rel_path, f'Comparison {idx}')
                 query, references = self.get_query_reference(self.input_dir, subfolder, idx)
 
                 reference_id = f'2015-{idx}'
@@ -629,9 +651,12 @@ class ChokePoint(FaceDataBase):
     def get_path(self):
         return os.path.join(self.input_dir, 'ChokePoint')
 
+    def get_rel_path(self):
+        return 'ChokePoint'
+
     def get_all_image_paths(self):
         groundtruth = self.get_groundtruth()
-        aip = [os.path.join(self.source,row.videofile,row.frame + '.jpg')
+        aip = [os.path.join(self.rel_path, row.videofile,row.frame + '.jpg')
         for index, row in groundtruth.iterrows()]
 
         return aip
@@ -641,7 +666,7 @@ class ChokePoint(FaceDataBase):
         pass
 
     def get_groundtruth(self):
-        gfolder = os.path.join(self.get_path(),'groundtruth') # groundtruth folder
+        gfolder = os.path.join(self.path,'groundtruth') # groundtruth folder
 
         df0 = pd.DataFrame()
         for gfile in os.listdir(gfolder):
@@ -682,7 +707,7 @@ class ChokePoint(FaceDataBase):
 
         groundtruth = self.get_groundtruth()
         groundtruth['image_path'] = groundtruth.apply(lambda x:
-        os.path.join(self.path,x.videofile,x.frame + '.jpg'), axis = 1)
+        os.path.join(self.rel_path, x.videofile,x.frame + '.jpg'), axis = 1)
 
         paths = self.paths_in_db(session)   
         #identities = self.identity_from_path(paths)
