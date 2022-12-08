@@ -155,8 +155,8 @@ def create_cropped_images(session, input_dir:str, serfiq = None):
                     .all()
             )
 
-            for img in tqdm(images[:5], desc=f'TRIM Creating Cropped Images for detector {det.name}'):
-            #for img in tqdm(images, desc=f'Creating Cropped Images for detector {det.name}'):
+            # for img in tqdm(images[:5], desc=f'TRIM Creating Cropped Images for detector {det.name}'):
+            for img in tqdm(images, desc=f'Creating Cropped Images for detector {det.name}'):
                 cropped_image = CroppedImage()
                 cropped_image.images = img
                 cropped_image.detectors = det
@@ -401,7 +401,8 @@ def update_tface(session, input_dir, serfiq, force_update: bool = False):
         query = query.filter(QualityImage.quality == None)
     all_rows = (query.all())
 
-    for row in tqdm(all_rows[:5], desc='TRIM: Computing TFace quality'):              
+    # for row in tqdm(all_rows[:5], desc='TRIM: Computing TFace quality'): 
+    for row in tqdm(all_rows, desc='Computing TFace quality'):             
 
         aligned_img = row.CroppedImage.get_aligned_image(input_dir, ser_fiq=serfiq) 
         quality = compute_tf_quality(aligned_img, net, gpu_available=gpu_available)             
