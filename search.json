@@ -1,0 +1,170 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "sql-face",
+    "section": "",
+    "text": "This file will become your README and also the index of your documentation."
+  },
+  {
+    "objectID": "index.html#install",
+    "href": "index.html#install",
+    "title": "sql-face",
+    "section": "Install",
+    "text": "Install\npip install sql_face"
+  },
+  {
+    "objectID": "index.html#how-to-use",
+    "href": "index.html#how-to-use",
+    "title": "sql-face",
+    "section": "How to use",
+    "text": "How to use\nFill me in please! Don’t forget code examples:\n\n1+1\n\n2"
+  },
+  {
+    "objectID": "serfiq.html",
+    "href": "serfiq.html",
+    "title": "SER-FIQ",
+    "section": "",
+    "text": "izip\n\nzip"
+  },
+  {
+    "objectID": "serfiq.html#face-preprocess",
+    "href": "serfiq.html#face-preprocess",
+    "title": "SER-FIQ",
+    "section": "Face preprocess",
+    "text": "Face preprocess\nImage cropping and alignment."
+  },
+  {
+    "objectID": "serfiq.html#mtcnn-detector",
+    "href": "serfiq.html#mtcnn-detector",
+    "title": "SER-FIQ",
+    "section": "MTCNN Detector",
+    "text": "MTCNN Detector\nInsightface implementation of this detector."
+  },
+  {
+    "objectID": "serfiq.html#helper",
+    "href": "serfiq.html#helper",
+    "title": "SER-FIQ",
+    "section": "Helper",
+    "text": "Helper\nHelper functions for SERFIQ."
+  },
+  {
+    "objectID": "serfiq.html#ser-fiq",
+    "href": "serfiq.html#ser-fiq",
+    "title": "SER-FIQ",
+    "section": "SER-FIQ",
+    "text": "SER-FIQ\nSER-FIQ class.\n\nsource\n\nSER_FIQ\n\n SER_FIQ (gpu:int=0, det:int=0)\n\nReimplementing Insightface’s FaceModel class. Now the dropout output and the network output are returned after a forward pass. Parameters ———- gpu : int, optional The GPU to be used by Mxnet. The default is 0. If set to None, CPU is used instead. det : int, optional Mtcnn option, 1= Use R+0, 0= Detect from beginning. The default is 0. Returns ——- None.\n\n\n\n\nType\nDefault\nDetails\n\n\n\n\ngpu\nint\n0\nWhich gpu should be used -> gpu id\n\n\ndet\nint\n0\nMtcnn option, 1= Use R+O, 0=Detect from beginning"
+  },
+  {
+    "objectID": "serfiq.html#get-serfiq",
+    "href": "serfiq.html#get-serfiq",
+    "title": "SER-FIQ",
+    "section": "Get SERFIQ",
+    "text": "Get SERFIQ\nGet SERFIQ model for main function.\n\nsource\n\nget_serfiq_model\n\n get_serfiq_model ()"
+  },
+  {
+    "objectID": "tface.html",
+    "href": "tface.html",
+    "title": "TFace",
+    "section": "",
+    "text": "Module for network, creates either recognition or quality model"
+  },
+  {
+    "objectID": "tface.html#preprocess-image",
+    "href": "tface.html#preprocess-image",
+    "title": "TFace",
+    "section": "Preprocess image",
+    "text": "Preprocess image\nPrepare for SSD-FIQA."
+  },
+  {
+    "objectID": "tface.html#networks",
+    "href": "tface.html#networks",
+    "title": "TFace",
+    "section": "Networks",
+    "text": "Networks\nNetwork definition"
+  },
+  {
+    "objectID": "tface.html#get-network",
+    "href": "tface.html#get-network",
+    "title": "TFace",
+    "section": "Get network",
+    "text": "Get network\nGet SDD-FIQA network for main.\n\nsource\n\nget_network\n\n get_network ()\n\n\nsource\n\n\ncompute_tf_quality\n\n compute_tf_quality (aligned_img:<built-infunctionarray>, network,\n                     gpu_available:bool)"
+  },
+  {
+    "objectID": "databases.html",
+    "href": "databases.html",
+    "title": "SQL Databases",
+    "section": "",
+    "text": "source\n\nFaceDataBase\n\n FaceDataBase (input_dir:str, source:str)\n\nHelper class that provides a standard way to create an ABC using inheritance.\n\nsource\n\n\nLFW\n\n LFW (input_dir)\n\nHelper class that provides a standard way to create an ABC using inheritance.\n\nsource\n\n\nXQLFW\n\n XQLFW (input_dir)\n\nHelper class that provides a standard way to create an ABC using inheritance.\n\nsource\n\n\nUTKFace\n\n UTKFace (input_dir)\n\nHelper class that provides a standard way to create an ABC using inheritance.\n\nsource\n\n\nSCFace\n\n SCFace (input_dir, types:List[str]=['frontal', 'rotated',\n         'surveillance'])\n\nHelper class that provides a standard way to create an ABC using inheritance.\n\nsource\n\n\nEnfsi\n\n Enfsi (input_dir, years:List[int]=[2011, 2012, 2013, 2017, 2018, 2019,\n        2020])\n\nHelper class that provides a standard way to create an ABC using inheritance.\n\nsource\n\n\nEnfsi2015\n\n Enfsi2015 (input_dir)\n\nHelper class that provides a standard way to create an ABC using inheritance.\n\nsource\n\n\nChokePoint\n\n ChokePoint (input_dir)\n\nHelper class that provides a standard way to create an ABC using inheritance.\n\nsource\n\n\nget_image_db\n\n get_image_db (input_dir:str, database_names:List[str])\n\nFunction that converts str names to FaceDataBase class."
+  },
+  {
+    "objectID": "tables.html",
+    "href": "tables.html",
+    "title": "SQL Tables Definition",
+    "section": "",
+    "text": "For face attributes."
+  },
+  {
+    "objectID": "tables.html#images",
+    "href": "tables.html#images",
+    "title": "SQL Tables Definition",
+    "section": "Images",
+    "text": "Images\nMain class and different types (such as SCface)\n\nclass Image(Base):\n    \"Image SQL class\"\n    __tablename__ = \"image\"\n    image_id = Column(Integer, primary_key=True) # Image primary key\n    path = Column(String) # Absolute or relative path\n    identity = Column(String) # Person identity of the image\n    source = Column(String) # Database the image belongs to\n    gender = Column(Enum(Gender))\n    age = Column(Enum(Age))\n    age_number = Column(Float)\n    emotion = Column(Enum(Emotion))\n    race = Column(Enum(Race))\n    yaw = Column(Enum(Yaw))\n    pitch = Column(Enum(Pitch))\n    roll = Column(Enum(Roll))\n    headgear = Column(Boolean)\n    glasses = Column(Boolean)\n    beard = Column(Boolean)\n    other_occlusions = Column(Boolean)\n    low_quality = Column(Boolean)\n    \n\n    type = Column(String)\n    __mapper_args__ = {\n        'polymorphic_identity': 'image',\n        'polymorphic_on': type\n    }\n\n    croppedImages = relationship(\"CroppedImage\", back_populates=\"images\", lazy='subquery')\n\n    def get_image(self, input_dir:str):\n        abs_path = os.path.join(input_dir, self.path)\n        return cv2.imread(abs_path)\n\n\nsource\n\nImage\n\n Image (**kwargs)\n\nImage SQL class"
+  },
+  {
+    "objectID": "tables.html#mixins",
+    "href": "tables.html#mixins",
+    "title": "SQL Tables Definition",
+    "section": "Mixins",
+    "text": "Mixins\nTo combine classes, such as image and Enfsi or Image and Video\n\n@declarative_mixin\nclass SCFaceMixin:\n    \"SC Face database mixin\"\n    sc_type = Column(String)\n    distance = Column(Enum(Distance))\n    infrared = Column(Boolean)\n\n    @declared_attr\n    def image_id(cls):\n        return Column(Integer, ForeignKey('image.image_id'), primary_key=True)\n\n\nsource\n\nSCFaceMixin\n\n SCFaceMixin ()\n\nSC Face database mixin\n\n@declarative_mixin\nclass EnfsiMixin:\n    \"ENFSI database mixin\"\n    year = Column(Integer)\n\n    @declared_attr\n    def image_id(cls):\n        return Column(Integer, ForeignKey('image.image_id'), primary_key=True)\n\n\nsource\n\n\nEnfsiMixin\n\n EnfsiMixin ()\n\nENFSI database mixin\n\n@declarative_mixin\nclass VideoMixin:\n    source_video = Column(String)\n    n_frame = Column(Integer)\n\n    @declared_attr\n    def image_id(cls):\n        return Column(Integer, ForeignKey('image.image_id'), primary_key=True)\n\n    def get_image(self, input_dir):\n        abs_path = os.path.join(input_dir,self.path)\n        video = cv2.VideoCapture(abs_path)\n        video.set(1, self.n_frame)\n        ret, image = video.read()\n        if ret:\n            return image\n\n\nsource\n\n\nVideoMixin\n\n VideoMixin ()\n\nInitialize self. See help(type(self)) for accurate signature.\n\n\nEnfsi Image\nEnfsi + Image\n\nclass EnfsiImage(EnfsiMixin, Image):\n    __tablename__ = 'enfsiImage'\n    __mapper_args__ = {\n        'polymorphic_identity': 'enfsiImage',\n    }\n\n\nsource\n\n\nEnfsiImage\n\n EnfsiImage (**kwargs)\n\nENFSI database mixin\n\n\nSC Face Image\nSC Face + Image\n\nclass SCImage(SCFaceMixin, Image):    \n    __tablename__ = 'scImage'\n    __mapper_args__ = {\n        'polymorphic_identity': 'scImage',\n    }\n\n\nsource\n\n\nSCImage\n\n SCImage (**kwargs)\n\nSC Face database mixin\n\n\nVideo Frame\nVideo + Image\n\nclass VideoFrame(VideoMixin, Image):\n    __tablename__ = 'videoFrame'\n    __mapper_args__ = {\n        'polymorphic_identity': 'videoFrame',\n    }\n\n\nsource\n\n\nVideoFrame\n\n VideoFrame (**kwargs)\n\nImage SQL class\n\nclass CPFrame(VideoFrame):\n    # \"ChokePoint video frame\"\n    #__tablename__ = 'cpVideoFrame'\n    __mapper_args__ = {\n        'polymorphic_identity': 'cpVideoFrame',\n    }\n\n    def get_image(self, input_dir):\n        \"\"\"Especial method for getting the images in ChokePoint.\n        Following indications as in (Image(Grandfather)->VideoFrame(Father)->CPFrame(Grandchild))\n        https://stackoverflow.com/questions/18117974/calling-a-parents-parents-method-which-has-been-overridden-by-the-parent\n        \"\"\"\n        return Image.get_image(self, input_dir)\n\n\nsource\n\n\nCPFrame\n\n CPFrame (**kwargs)\n\nImage SQL class\n\nclass EnfsiVideoFrame(EnfsiMixin, VideoMixin, Image):\n    __tablename__ = 'enfsiVideoFrame'\n    __mapper_args__ = {\n        'polymorphic_identity': 'enfsiVideoFrame',\n    }\n\n\nsource\n\n\nEnfsiVideoFrame\n\n EnfsiVideoFrame (**kwargs)\n\nENFSI database mixin"
+  },
+  {
+    "objectID": "tables.html#pairs",
+    "href": "tables.html#pairs",
+    "title": "SQL Tables Definition",
+    "section": "Pairs",
+    "text": "Pairs\nImage + Image or FaceImage+FaceImage\n\nsource\n\nPair\n\n Pair (first:__main__.Image, second:__main__.Image)\n\nInitialize self. See help(type(self)) for accurate signature.\n\nclass EnfsiPair(Base, Pair):\n    __tablename__ = \"enfsiPair\"\n    enfsiPair_id = Column(Integer, primary_key=True)\n\n    same = Column(Boolean)\n    ExpertsLLR = Column(PickleType)\n\n    first_id = Column(Integer, ForeignKey('enfsiImage.image_id'))\n    # todo: does it make a difference to fill with images or enfsi images here?\n    second_id = Column(Integer, ForeignKey('enfsiImage.image_id'))\n\n    first = relationship(\"EnfsiImage\", foreign_keys=[first_id])\n    second = relationship(\"EnfsiImage\", foreign_keys=[second_id])\n\n    enfsi_type = Column(String)\n    __mapper_args__ = {\n        'polymorphic_identity': 'enfsiPair',\n        'polymorphic_on': enfsi_type\n    }\n\n\nsource\n\n\nEnfsiPair\n\n EnfsiPair (**kwargs)\n\nThe base class of the class hierarchy.\nWhen called, it accepts no arguments and returns a new featureless instance that has no instance attributes and cannot be given any.\n\nclass EnfsiPair2015(EnfsiPair):\n    __tablename__ = 'enfsiPair2015'\n    enfsiPair2015_id = Column(Integer, ForeignKey('enfsiPair.enfsiPair_id'), primary_key=True)\n\n    comparison = Column(Integer)\n\n    # todo: repeated column in enfsipair and enfsipair2015. Should be deleted from enfsipair2015.\n    first_id = Column(Integer, ForeignKey('enfsiVideoFrame.image_id'))\n    first = relationship(\"EnfsiVideoFrame\", foreign_keys=[first_id])\n\n\n\n    __mapper_args__ = {\n        'polymorphic_identity': 'enfsiPair2015',\n    }\n\n\nsource\n\n\nEnfsiPair2015\n\n EnfsiPair2015 (**kwargs)\n\nThe base class of the class hierarchy.\nWhen called, it accepts no arguments and returns a new featureless instance that has no instance attributes and cannot be given any."
+  },
+  {
+    "objectID": "tables.html#detector-and-cropped-image.",
+    "href": "tables.html#detector-and-cropped-image.",
+    "title": "SQL Tables Definition",
+    "section": "Detector and Cropped Image.",
+    "text": "Detector and Cropped Image.\nCropped and aligned faces.\n\nclass Detector(Base):\n    \"Detector SQL class\"\n    __tablename__ = \"detector\"\n    detector_id = Column(Integer, primary_key=True)\n    name = Column(String)\n\n\nsource\n\nDetector\n\n Detector (**kwargs)\n\nDetector SQL class\n\nclass CroppedImage(Base):\n    __tablename__ = 'croppedImage'\n    croppedImage_id = Column(Integer, primary_key=True)\n\n    image_id = Column(Integer, ForeignKey('image.image_id'))\n    detector_id = Column(Integer, ForeignKey('detector.detector_id'))\n\n    bounding_box = Column(PickleType)\n    landmarks = Column(PickleType)\n    face_detected = Column(Boolean)\n\n    images = relationship(\"Image\", foreign_keys=[image_id])\n    detectors = relationship(\"Detector\", foreign_keys=[detector_id])\n    faceImages = relationship(\"FaceImage\", back_populates=\"croppedImages\")\n\n    def get_cropped_image(self, input_dir):\n        image = self.images.get_image(input_dir)\n        if self.face_detected:\n            return image[self.bounding_box[1]:self.bounding_box[1] + self.bounding_box[3],\n                   self.bounding_box[0]:self.bounding_box[0] + self.bounding_box[2], :]\n        else:\n            return image\n\n    def get_aligned_image(self, input_dir, target_size:Tuple[int,int]=(112,112), ser_fiq = None):\n        \n        if self.detectors.name == 'mtcnn_serfiq':\n            image = self.images.get_image(input_dir) \n            aligned_image = ser_fiq.apply_mtcnn(image)                     \n            return np.transpose(aligned_image, (1,2,0)) \n        \n        else:\n            img_abs_path = os.path.join(input_dir, self.images.path)\n            aligned_img = DeepFace.detectFace(img_path = img_abs_path, \n            target_size = target_size, \n            detector_backend = self.detectors.name, \n            align=True,\n            enforce_detection=True)\n            return aligned_img*255\n\n\nsource\n\n\nCroppedImage\n\n CroppedImage (**kwargs)\n\nThe base class of the class hierarchy.\nWhen called, it accepts no arguments and returns a new featureless instance that has no instance attributes and cannot be given any.\n\nclass EmbeddingModel(Base):\n    __tablename__ = \"embeddingModel\"\n    embeddingModel_id = Column(Integer, primary_key=True)\n    name = Column(String)\n\n\nsource\n\n\nEmbeddingModel\n\n EmbeddingModel (**kwargs)\n\nThe base class of the class hierarchy.\nWhen called, it accepts no arguments and returns a new featureless instance that has no instance attributes and cannot be given any.\n\nclass FaceImage(Base):\n    __tablename__ = 'faceImage'\n    faceImage_id = Column(Integer, primary_key=True)\n\n    croppedImage_id = Column(Integer, ForeignKey('croppedImage.croppedImage_id'))\n    embeddingModel_id = Column(Integer, ForeignKey('embeddingModel.embeddingModel_id'))\n\n    embeddings = Column(PickleType)\n    confusion_score = Column(Float)\n\n    croppedImages = relationship(\"CroppedImage\", foreign_keys=[croppedImage_id])\n    embeddingModels = relationship(\"EmbeddingModel\", foreign_keys=[embeddingModel_id])\n\n\nsource\n\n\nFaceImage\n\n FaceImage (**kwargs)\n\nThe base class of the class hierarchy.\nWhen called, it accepts no arguments and returns a new featureless instance that has no instance attributes and cannot be given any.\n\nclass QualityModel(Base):\n    __tablename__ = \"qualityModel\"\n    qualityModel_id = Column(Integer, primary_key=True)\n    name = Column(String)\n\n\nsource\n\n\nQualityModel\n\n QualityModel (**kwargs)\n\nThe base class of the class hierarchy.\nWhen called, it accepts no arguments and returns a new featureless instance that has no instance attributes and cannot be given any.\n\nclass QualityImage(Base):\n    __tablename__ = 'qualityImage'\n    qualityImage_id = Column(Integer, primary_key=True)\n\n    faceImage_id = Column(Integer, ForeignKey('faceImage.faceImage_id'))\n    qualityModel_id = Column(Integer, ForeignKey('qualityModel.qualityModel_id'))\n\n    quality = Column(Float)\n    quality_vec = Column(PickleType)\n\n    faceImages = relationship(\"FaceImage\", foreign_keys=[faceImage_id])\n    qualityModels = relationship(\"QualityModel\", foreign_keys=[qualityModel_id])\n\n\nsource\n\n\nQualityImage\n\n QualityImage (**kwargs)\n\nThe base class of the class hierarchy.\nWhen called, it accepts no arguments and returns a new featureless instance that has no instance attributes and cannot be given any."
+  },
+  {
+    "objectID": "core.html",
+    "href": "core.html",
+    "title": "core",
+    "section": "",
+    "text": "source\n\nfoo\n\n foo (x:int)\n\n\n\n\n\nType\nDetails\n\n\n\n\nx\nint\nnumber to compute\n\n\nReturns\nint\n\n\n\n\n\nx = foo(3)"
+  },
+  {
+    "objectID": "alchemy.html",
+    "href": "alchemy.html",
+    "title": "SQL Alchemy",
+    "section": "",
+    "text": "Connect to SQL database\n\nsource\n\n\n\n get_session (output_dir:str, db_name:str)\n\n\n\n\n\nType\nDetails\n\n\n\n\noutput_dir\nstr\nOutput directory\n\n\ndb_name\nstr\n.db file name"
+  },
+  {
+    "objectID": "alchemy.html#table-creators",
+    "href": "alchemy.html#table-creators",
+    "title": "SQL Alchemy",
+    "section": "Table creators",
+    "text": "Table creators\nDetectors, Images, Cropped Images, etc.\n\nsource\n\ncreate_detectors\n\n create_detectors (session, detector_names:List[str])\n\n\nsource\n\n\ncreate_embedding_models\n\n create_embedding_models (session, embedding_model_names:List[str])\n\n\nsource\n\n\ncreate_quality_models\n\n create_quality_models (session, quality_model_names:List[str])\n\n\nsource\n\n\nfill_cropped_image_serfiq\n\n fill_cropped_image_serfiq (cr_img:sql_face.tables.CroppedImage,\n                            input_dir, ser_fiq)\n\n\nsource\n\n\nfill_cropped_image_general\n\n fill_cropped_image_general (cr_img:sql_face.tables.CroppedImage,\n                             input_dir, **kwargs)\n\n\nsource\n\n\ncreate_cropped_images\n\n create_cropped_images (session, input_dir:str, serfiq=None)\n\n\nsource\n\n\ncreate_face_images\n\n create_face_images (session)\n\n\nsource\n\n\ncreate_quality_images\n\n create_quality_images (session)"
+  },
+  {
+    "objectID": "alchemy.html#table-attribute-update",
+    "href": "alchemy.html#table-attribute-update",
+    "title": "SQL Alchemy",
+    "section": "Table attribute update",
+    "text": "Table attribute update\nOnce the tables are created, functions to fill in the Image, CroppedImage, FaceImage and Qualityimage attributes.\n\nsource\n\nupdate_gender\n\n update_gender (session, input_dir:str,\n                databases:List[sql_face.databases.FaceDataBase],\n                force_update:bool=False)\n\n\nsource\n\n\nupdate_age\n\n update_age (session, input_dir:str,\n             databases:List[sql_face.databases.FaceDataBase],\n             force_update:bool=False)\n\n\nsource\n\n\nupdate_emotion\n\n update_emotion (session, input_dir:str,\n                 databases:List[sql_face.databases.FaceDataBase],\n                 force_update:bool=False)\n\n\nsource\n\n\nupdate_race\n\n update_race (session, databases:List[sql_face.databases.FaceDataBase],\n              force_update:bool=False)\n\n\nsource\n\n\nupdate_images\n\n update_images (session, input_dir,\n                databases:List[sql_face.databases.FaceDataBase],\n                attributes:List[str], force_update:bool=False)\n\nUpdates Image attributes\n\n# TODO: refactoring so Deepface attributes are all together in a single function.\n\n# def update_deepface(session, \n#                     databases: List[FaceDataBase], \n#                     attributes: List[str], \n#                     force_update: bool = False):\n\n    # \"Updates attributes computed by DeepFace library.\"\n    \n#     deepface_attributes = ['age', 'gender', 'race', 'emotion']\n#     update_attributes = set(attributes).intersection(deepface_attributes)\n\n#     for db in databases:\n#         query = session.query(Image).filter(Image.source == db.source)\n#             if not force_update:\n#                 for attr in update_attributes:\n#                     query = query.filter(Image.gender == None)\n#             all_img = (query.all())\n#             for img in tqdm(all_img, desc='Update gender'):\n#                 filters = DeepFace.analyze(img_path=img.get_image(), actions=[\n#                                         'gender'], enforce_detection=False)\n#                 img.gender = Gender(filters[\"gender\"])\n#                 session.commit()\n\n\nsource\n\n\nupdate_cropped_images\n\n update_cropped_images (session, input_dir:str, force_update:bool=False,\n                        serfiq=None)\n\n\nsource\n\n\nupdate_face_images\n\n update_face_images (session, input_dir:str, force_update:bool=False)\n\n\nsource\n\n\nupdate_embeddings\n\n update_embeddings (session, input_dir:str, force_update:bool=False)\n\n\nsource\n\n\nupdate_quality_images\n\n update_quality_images (session, input_dir, serfiq=None,\n                        force_update:bool=False)\n\n\nsource\n\n\nupdate_ser_fiq\n\n update_ser_fiq (session, input_dir, serfiq=None, force_update:bool=False)\n\n\nsource\n\n\nupdate_tface\n\n update_tface (session, input_dir, serfiq, force_update:bool=False)"
+  },
+  {
+    "objectID": "sqldb.html",
+    "href": "sqldb.html",
+    "title": "SQL DB",
+    "section": "",
+    "text": "source\n\nSQLDataBase\n\n SQLDataBase (db_name:str, input_dir:str, output_dir_name:str,\n              database_names:List[str], detector_names:List[str],\n              embedding_model_names:List[str],\n              quality_model_names:List[str], save_in_drive:bool=False)\n\nA SQL class to save face attributes\n\n\n\n\n\n\n\n\n\n\nType\nDefault\nDetails\n\n\n\n\ndb_name\nstr\n\nDataset file name\n\n\ninput_dir\nstr\n\nFolder with face datasets files\n\n\noutput_dir_name\nstr\n\nFolder where the .db will be saved\n\n\ndatabase_names\ntyping.List[str]\n\nList of database names to be processed\n\n\ndetector_names\ntyping.List[str]\n\nList of detector names to be processed\n\n\nembedding_model_names\ntyping.List[str]\n\nList of embedding model names to be processed\n\n\nquality_model_names\ntyping.List[str]\n\nList of quality names to be processed\n\n\nsave_in_drive\nbool\nFalse\nFlag for working in local / Google Colab"
+  }
+]

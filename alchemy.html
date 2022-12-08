@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.2.269">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="Alchemy related functions.">
+
+<title>sql-face - SQL Alchemy</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="styles.css">
+<meta property="og:title" content="sql-face - SQL Alchemy">
+<meta property="og:description" content="Alchemy related functions.">
+<meta property="og:site-name" content="sql-face">
+<meta name="twitter:title" content="sql-face - SQL Alchemy">
+<meta name="twitter:description" content="Alchemy related functions.">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-sidebar floating nav-fixed">
+
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">sql-face</span>
+    </a>
+  </div>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+    <div class="container-fluid d-flex justify-content-between">
+      <h1 class="quarto-secondary-nav-title">SQL Alchemy</h1>
+      <button type="button" class="quarto-btn-toggle btn" aria-label="Show secondary navigation">
+        <i class="bi bi-chevron-right"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">sql-face</a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./core.html" class="sidebar-item-text sidebar-link">core</a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./sqldb.html" class="sidebar-item-text sidebar-link">SQL DB</a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./alchemy.html" class="sidebar-item-text sidebar-link active">SQL Alchemy</a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tables.html" class="sidebar-item-text sidebar-link">SQL Tables Definition</a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./databases.html" class="sidebar-item-text sidebar-link">SQL Databases</a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./serfiq.html" class="sidebar-item-text sidebar-link">SER-FIQ</a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tface.html" class="sidebar-item-text sidebar-link">TFace</a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#connect-session" id="toc-connect-session" class="nav-link active" data-scroll-target="#connect-session">Connect session</a>
+  <ul class="collapse">
+  <li><a href="#get_session" id="toc-get_session" class="nav-link" data-scroll-target="#get_session">get_session</a></li>
+  </ul></li>
+  <li><a href="#table-creators" id="toc-table-creators" class="nav-link" data-scroll-target="#table-creators">Table creators</a>
+  <ul class="collapse">
+  <li><a href="#create_detectors" id="toc-create_detectors" class="nav-link" data-scroll-target="#create_detectors">create_detectors</a></li>
+  <li><a href="#create_embedding_models" id="toc-create_embedding_models" class="nav-link" data-scroll-target="#create_embedding_models">create_embedding_models</a></li>
+  <li><a href="#create_quality_models" id="toc-create_quality_models" class="nav-link" data-scroll-target="#create_quality_models">create_quality_models</a></li>
+  <li><a href="#fill_cropped_image_serfiq" id="toc-fill_cropped_image_serfiq" class="nav-link" data-scroll-target="#fill_cropped_image_serfiq">fill_cropped_image_serfiq</a></li>
+  <li><a href="#fill_cropped_image_general" id="toc-fill_cropped_image_general" class="nav-link" data-scroll-target="#fill_cropped_image_general">fill_cropped_image_general</a></li>
+  <li><a href="#create_cropped_images" id="toc-create_cropped_images" class="nav-link" data-scroll-target="#create_cropped_images">create_cropped_images</a></li>
+  <li><a href="#create_face_images" id="toc-create_face_images" class="nav-link" data-scroll-target="#create_face_images">create_face_images</a></li>
+  <li><a href="#create_quality_images" id="toc-create_quality_images" class="nav-link" data-scroll-target="#create_quality_images">create_quality_images</a></li>
+  </ul></li>
+  <li><a href="#table-attribute-update" id="toc-table-attribute-update" class="nav-link" data-scroll-target="#table-attribute-update">Table attribute update</a>
+  <ul class="collapse">
+  <li><a href="#update_gender" id="toc-update_gender" class="nav-link" data-scroll-target="#update_gender">update_gender</a></li>
+  <li><a href="#update_age" id="toc-update_age" class="nav-link" data-scroll-target="#update_age">update_age</a></li>
+  <li><a href="#update_emotion" id="toc-update_emotion" class="nav-link" data-scroll-target="#update_emotion">update_emotion</a></li>
+  <li><a href="#update_race" id="toc-update_race" class="nav-link" data-scroll-target="#update_race">update_race</a></li>
+  <li><a href="#update_images" id="toc-update_images" class="nav-link" data-scroll-target="#update_images">update_images</a></li>
+  <li><a href="#update_cropped_images" id="toc-update_cropped_images" class="nav-link" data-scroll-target="#update_cropped_images">update_cropped_images</a></li>
+  <li><a href="#update_face_images" id="toc-update_face_images" class="nav-link" data-scroll-target="#update_face_images">update_face_images</a></li>
+  <li><a href="#update_embeddings" id="toc-update_embeddings" class="nav-link" data-scroll-target="#update_embeddings">update_embeddings</a></li>
+  <li><a href="#update_quality_images" id="toc-update_quality_images" class="nav-link" data-scroll-target="#update_quality_images">update_quality_images</a></li>
+  <li><a href="#update_ser_fiq" id="toc-update_ser_fiq" class="nav-link" data-scroll-target="#update_ser_fiq">update_ser_fiq</a></li>
+  <li><a href="#update_tface" id="toc-update_tface" class="nav-link" data-scroll-target="#update_tface">update_tface</a></li>
+  </ul></li>
+  </ul>
+<div class="toc-actions"><div><i class="bi bi-github"></i></div><div class="action-links"><p><a href="https://github.com/AndreaMacarulla/sql-face/issues/new" class="toc-action">Report an issue</a></p></div></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title d-none d-lg-block">SQL Alchemy</h1>
+</div>
+
+<div>
+  <div class="description">
+    Alchemy related functions.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<!-- WARNING: THIS FILE WAS AUTOGENERATED! DO NOT EDIT! -->
+<section id="connect-session" class="level2">
+<h2 class="anchored" data-anchor-id="connect-session">Connect session</h2>
+<p>Connect to SQL database</p>
+<hr>
+<p><a href="https://github.com/AndreaMacarulla/sql-face/blob/main/sql_face/alchemy.py#L27" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="get_session" class="level3">
+<h3 class="anchored" data-anchor-id="get_session">get_session</h3>
+<blockquote class="blockquote">
+<pre><code> get_session (output_dir:str, db_name:str)</code></pre>
+</blockquote>
+<table class="table">
+<thead>
+<tr class="header">
+<th></th>
+<th><strong>Type</strong></th>
+<th><strong>Details</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>output_dir</td>
+<td>str</td>
+<td>Output directory</td>
+</tr>
+<tr class="even">
+<td>db_name</td>
+<td>str</td>
+<td>.db file name</td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="table-creators" class="level2">
+<h2 class="anchored" data-anchor-id="table-creators">Table creators</h2>
+<p>Detectors, Images, Cropped Images, etc.</p>
+<hr>
+<p><a href="https://github.com/AndreaMacarulla/sql-face/blob/main/sql_face/alchemy.py#L51" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="create_detectors" class="level3">
+<h3 class="anchored" data-anchor-id="create_detectors">create_detectors</h3>
+<blockquote class="blockquote">
+<pre><code> create_detectors (session, detector_names:List[str])</code></pre>
+</blockquote>
+<hr>
+<p><a href="https://github.com/AndreaMacarulla/sql-face/blob/main/sql_face/alchemy.py#L68" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="create_embedding_models" class="level3">
+<h3 class="anchored" data-anchor-id="create_embedding_models">create_embedding_models</h3>
+<blockquote class="blockquote">
+<pre><code> create_embedding_models (session, embedding_model_names:List[str])</code></pre>
+</blockquote>
+<hr>
+<p><a href="https://github.com/AndreaMacarulla/sql-face/blob/main/sql_face/alchemy.py#L83" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="create_quality_models" class="level3">
+<h3 class="anchored" data-anchor-id="create_quality_models">create_quality_models</h3>
+<blockquote class="blockquote">
+<pre><code> create_quality_models (session, quality_model_names:List[str])</code></pre>
+</blockquote>
+<hr>
+<p><a href="https://github.com/AndreaMacarulla/sql-face/blob/main/sql_face/alchemy.py#L98" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="fill_cropped_image_serfiq" class="level3">
+<h3 class="anchored" data-anchor-id="fill_cropped_image_serfiq">fill_cropped_image_serfiq</h3>
+<blockquote class="blockquote">
+<pre><code> fill_cropped_image_serfiq (cr_img:sql_face.tables.CroppedImage,
+                            input_dir, ser_fiq)</code></pre>
+</blockquote>
+<hr>
+<p><a href="https://github.com/AndreaMacarulla/sql-face/blob/main/sql_face/alchemy.py#L114" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="fill_cropped_image_general" class="level3">
+<h3 class="anchored" data-anchor-id="fill_cropped_image_general">fill_cropped_image_general</h3>
+<blockquote class="blockquote">
+<pre><code> fill_cropped_image_general (cr_img:sql_face.tables.CroppedImage,
+                             input_dir, **kwargs)</code></pre>
+</blockquote>
+<hr>
+<p><a href="https://github.com/AndreaMacarulla/sql-face/blob/main/sql_face/alchemy.py#L137" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="create_cropped_images" class="level3">
+<h3 class="anchored" data-anchor-id="create_cropped_images">create_cropped_images</h3>
+<blockquote class="blockquote">
+<pre><code> create_cropped_images (session, input_dir:str, serfiq=None)</code></pre>
+</blockquote>
+<hr>
+<p><a href="https://github.com/AndreaMacarulla/sql-face/blob/main/sql_face/alchemy.py#L168" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="create_face_images" class="level3">
+<h3 class="anchored" data-anchor-id="create_face_images">create_face_images</h3>
+<blockquote class="blockquote">
+<pre><code> create_face_images (session)</code></pre>
+</blockquote>
+<hr>
+<p><a href="https://github.com/AndreaMacarulla/sql-face/blob/main/sql_face/alchemy.py#L189" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="create_quality_images" class="level3">
+<h3 class="anchored" data-anchor-id="create_quality_images">create_quality_images</h3>
+<blockquote class="blockquote">
+<pre><code> create_quality_images (session)</code></pre>
+</blockquote>
+</section>
+</section>
+<section id="table-attribute-update" class="level2">
+<h2 class="anchored" data-anchor-id="table-attribute-update">Table attribute update</h2>
+<p>Once the tables are created, functions to fill in the Image, CroppedImage, FaceImage and Qualityimage attributes.</p>
+<hr>
+<p><a href="https://github.com/AndreaMacarulla/sql-face/blob/main/sql_face/alchemy.py#L209" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="update_gender" class="level3">
+<h3 class="anchored" data-anchor-id="update_gender">update_gender</h3>
+<blockquote class="blockquote">
+<pre><code> update_gender (session, input_dir:str,
+                databases:List[sql_face.databases.FaceDataBase],
+                force_update:bool=False)</code></pre>
+</blockquote>
+<hr>
+<p><a href="https://github.com/AndreaMacarulla/sql-face/blob/main/sql_face/alchemy.py#L224" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="update_age" class="level3">
+<h3 class="anchored" data-anchor-id="update_age">update_age</h3>
+<blockquote class="blockquote">
+<pre><code> update_age (session, input_dir:str,
+             databases:List[sql_face.databases.FaceDataBase],
+             force_update:bool=False)</code></pre>
+</blockquote>
+<hr>
+<p><a href="https://github.com/AndreaMacarulla/sql-face/blob/main/sql_face/alchemy.py#L241" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="update_emotion" class="level3">
+<h3 class="anchored" data-anchor-id="update_emotion">update_emotion</h3>
+<blockquote class="blockquote">
+<pre><code> update_emotion (session, input_dir:str,
+                 databases:List[sql_face.databases.FaceDataBase],
+                 force_update:bool=False)</code></pre>
+</blockquote>
+<hr>
+<p><a href="https://github.com/AndreaMacarulla/sql-face/blob/main/sql_face/alchemy.py#L257" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="update_race" class="level3">
+<h3 class="anchored" data-anchor-id="update_race">update_race</h3>
+<blockquote class="blockquote">
+<pre><code> update_race (session, databases:List[sql_face.databases.FaceDataBase],
+              force_update:bool=False)</code></pre>
+</blockquote>
+<hr>
+<p><a href="https://github.com/AndreaMacarulla/sql-face/blob/main/sql_face/alchemy.py#L273" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="update_images" class="level3">
+<h3 class="anchored" data-anchor-id="update_images">update_images</h3>
+<blockquote class="blockquote">
+<pre><code> update_images (session, input_dir,
+                databases:List[sql_face.databases.FaceDataBase],
+                attributes:List[str], force_update:bool=False)</code></pre>
+</blockquote>
+<p>Updates Image attributes</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TODO</span><span class="co">: refactoring so Deepface attributes are all together in a single function.</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co"># def update_deepface(session, </span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="co">#                     databases: List[FaceDataBase], </span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="co">#                     attributes: List[str], </span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="co">#                     force_update: bool = False):</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>    <span class="co"># "Updates attributes computed by DeepFace library."</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="co">#     deepface_attributes = ['age', 'gender', 'race', 'emotion']</span></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a><span class="co">#     update_attributes = set(attributes).intersection(deepface_attributes)</span></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a><span class="co">#     for db in databases:</span></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a><span class="co">#         query = session.query(Image).filter(Image.source == db.source)</span></span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a><span class="co">#             if not force_update:</span></span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a><span class="co">#                 for attr in update_attributes:</span></span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a><span class="co">#                     query = query.filter(Image.gender == None)</span></span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a><span class="co">#             all_img = (query.all())</span></span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a><span class="co">#             for img in tqdm(all_img, desc='Update gender'):</span></span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a><span class="co">#                 filters = DeepFace.analyze(img_path=img.get_image(), actions=[</span></span>
+<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a><span class="co">#                                         'gender'], enforce_detection=False)</span></span>
+<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a><span class="co">#                 img.gender = Gender(filters["gender"])</span></span>
+<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a><span class="co">#                 session.commit()</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<hr>
+<p><a href="https://github.com/AndreaMacarulla/sql-face/blob/main/sql_face/alchemy.py#L293" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="update_cropped_images" class="level3">
+<h3 class="anchored" data-anchor-id="update_cropped_images">update_cropped_images</h3>
+<blockquote class="blockquote">
+<pre><code> update_cropped_images (session, input_dir:str, force_update:bool=False,
+                        serfiq=None)</code></pre>
+</blockquote>
+<hr>
+<p><a href="https://github.com/AndreaMacarulla/sql-face/blob/main/sql_face/alchemy.py#L323" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="update_face_images" class="level3">
+<h3 class="anchored" data-anchor-id="update_face_images">update_face_images</h3>
+<blockquote class="blockquote">
+<pre><code> update_face_images (session, input_dir:str, force_update:bool=False)</code></pre>
+</blockquote>
+<hr>
+<p><a href="https://github.com/AndreaMacarulla/sql-face/blob/main/sql_face/alchemy.py#L328" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="update_embeddings" class="level3">
+<h3 class="anchored" data-anchor-id="update_embeddings">update_embeddings</h3>
+<blockquote class="blockquote">
+<pre><code> update_embeddings (session, input_dir:str, force_update:bool=False)</code></pre>
+</blockquote>
+<hr>
+<p><a href="https://github.com/AndreaMacarulla/sql-face/blob/main/sql_face/alchemy.py#L349" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="update_quality_images" class="level3">
+<h3 class="anchored" data-anchor-id="update_quality_images">update_quality_images</h3>
+<blockquote class="blockquote">
+<pre><code> update_quality_images (session, input_dir, serfiq=None,
+                        force_update:bool=False)</code></pre>
+</blockquote>
+<hr>
+<p><a href="https://github.com/AndreaMacarulla/sql-face/blob/main/sql_face/alchemy.py#L355" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="update_ser_fiq" class="level3">
+<h3 class="anchored" data-anchor-id="update_ser_fiq">update_ser_fiq</h3>
+<blockquote class="blockquote">
+<pre><code> update_ser_fiq (session, input_dir, serfiq=None, force_update:bool=False)</code></pre>
+</blockquote>
+<hr>
+<p><a href="https://github.com/AndreaMacarulla/sql-face/blob/main/sql_face/alchemy.py#L382" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="update_tface" class="level3">
+<h3 class="anchored" data-anchor-id="update_tface">update_tface</h3>
+<blockquote class="blockquote">
+<pre><code> update_tface (session, input_dir, serfiq, force_update:bool=False)</code></pre>
+</blockquote>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
