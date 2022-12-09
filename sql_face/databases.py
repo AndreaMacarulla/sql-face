@@ -44,9 +44,9 @@ class FaceDataBase(ABC):
     def get_all_image_paths(self):
         pass
 
-    @abstractmethod
-    def get_rel_path(self):
-        pass
+    # @abstractmethod
+    # def get_rel_path(self):
+    #     pass
     
     def get_path(self):
         return os.path.join(self.input_dir, self.rel_path)
@@ -132,10 +132,10 @@ class LFW(FaceDataBase):
 # %% ../nbs/04_databases.ipynb 6
 class XQLFW(FaceDataBase):
     def __init__(self, input_dir):
-        super().__init__(input_dir, source = 'XQLFW')    
+        super().__init__(input_dir, source = 'XQLFW', rel_path ='xqlfw')    
     
-    def get_path(self)->str:
-        return os.path.join(self.input_dir, 'xqlfw')
+    # def get_path(self)->str:
+    #    return os.path.join(self.input_dir, 'xqlfw')
 
     # def get_rel_path(self)->str:
     #     return 'xqlfw'
