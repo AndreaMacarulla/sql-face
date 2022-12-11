@@ -370,8 +370,10 @@ class CroppedImage(Base):
             return np.transpose(aligned_image, (1,2,0)) 
         
         else:
-            img_abs_path = os.path.join(input_dir, self.images.path)
-            aligned_img = DeepFace.detectFace(img_path = img_abs_path, 
+            image = self.images.get_image(input_dir)
+            #img_abs_path = os.path.join(input_dir, self.images.path)
+            #aligned_img = DeepFace.detectFace(img_path = img_abs_path, 
+            aligned_img = DeepFace.detectFace(img_path = image, 
             target_size = target_size, 
             detector_backend = self.detectors.name, 
             align=True,
