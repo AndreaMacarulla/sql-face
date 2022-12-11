@@ -30,27 +30,26 @@ from sql_face.tables import Gender, Age, Emotion, Race, Distance, Yaw, Pitch, Ro
 class FaceDataBase(ABC):
     def __init__(self, 
     input_dir:str,
-    source:str
+    source:str, 
+    rel_path:str
     ):
-        self.input_dir= input_dir
         self.source = source
-        self.path = self.get_path()
-        self.rel_path = self.get_rel_path()
+        self.input_dir= input_dir
+        self.rel_path = rel_path      
+        self.path = self.get_path()        
         self.all_image_paths = self.get_all_image_paths()
 
-    
-    @abstractmethod
-    def get_path(self):
-        pass
-
-    @abstractmethod
-    def get_rel_path(self):
-        pass
     
     @abstractmethod
     def get_all_image_paths(self):
         pass
 
+    # @abstractmethod
+    # def get_rel_path(self):
+    #     pass
+    
+    def get_path(self):
+        return os.path.join(self.input_dir, self.rel_path)
 
     def paths_in_db(self, session):        
         db_paths = (
@@ -103,13 +102,13 @@ class FaceDataBase(ABC):
 # %% ../nbs/04_databases.ipynb 5
 class LFW(FaceDataBase):
     def __init__(self, input_dir):
-        super().__init__(input_dir, source = 'LFW')
+        super().__init__(input_dir, source = 'LFW', rel_path='lfw')
 
-    def get_path(self)->str:
-        return os.path.join(self.input_dir, 'lfw')
+    # def get_path(self)->str:
+    #     return os.path.join(self.input_dir, 'lfw')
 
-    def get_rel_path(self)->str:
-        return 'lfw'
+    # def get_rel_path(self)->str:
+    #     return 'lfw'
 
 
 
@@ -133,13 +132,13 @@ class LFW(FaceDataBase):
 # %% ../nbs/04_databases.ipynb 6
 class XQLFW(FaceDataBase):
     def __init__(self, input_dir):
-        super().__init__(input_dir, source = 'XQLFW')    
+        super().__init__(input_dir, source = 'XQLFW', rel_path ='xqlfw')    
     
-    def get_path(self)->str:
-        return os.path.join(self.input_dir, 'xqlfw')
+    # def get_path(self)->str:
+    #    return os.path.join(self.input_dir, 'xqlfw')
 
-    def get_rel_path(self)->str:
-        return 'xqlfw'
+    # def get_rel_path(self)->str:
+    #     return 'xqlfw'
 
     def get_all_image_paths(self) -> List[str]:
         paths = []
@@ -159,14 +158,14 @@ class XQLFW(FaceDataBase):
 # %% ../nbs/04_databases.ipynb 7
 class UTKFace(FaceDataBase):
     def __init__(self, input_dir):
-        super().__init__(input_dir, source = 'UTKface') 
+        super().__init__(input_dir, source = 'UTKface', rel_path='UTKface') 
         
         
-    def get_path(self)->str:
-        return os.path.join(self.input_dir, 'UTKface')
+    # def get_path(self)->str:
+    #     return os.path.join(self.input_dir, 'UTKface')
 
-    def get_rel_path(self)->str:
-        return 'UTKface'
+    # def get_rel_path(self)->str:
+    #     return 'UTKface'
 
 
     def get_all_image_paths(self) -> List[str]:
@@ -246,14 +245,14 @@ class SCFace(FaceDataBase):
     def __init__(self, input_dir, types:List[str] =  ["frontal", "rotated", "surveillance"]):
         self.types = types
         self.folders = self._types_to_folders(self.types)        
-        super().__init__(input_dir, source = 'SCFace')
+        super().__init__(input_dir, source = 'SCFace', rel_path='SCface')
 
 
-    def get_path(self)->str:
-        return os.path.join(self.input_dir, 'SCface')
+    # def get_path(self)->str:
+    #     return os.path.join(self.input_dir, 'SCface')
 
-    def get_rel_path(self)->str:
-        return 'SCface'
+    # def get_rel_path(self)->str:
+    #     return 'SCface'
     
     def get_all_image_paths(self) -> List[str]:
         paths = []
@@ -387,13 +386,13 @@ class SCFace(FaceDataBase):
 class Enfsi(FaceDataBase):
     def __init__(self, input_dir, years:List[int]=[2011, 2012, 2013, 2017, 2018, 2019, 2020]):
         self.years = years        
-        super().__init__(input_dir, source = 'ENFSI')
+        super().__init__(input_dir, source = 'ENFSI', rel_path='enfsi')
 
-    def get_path(self):
-        return os.path.join(self.input_dir, 'enfsi')
+    # def get_path(self):
+    #     return os.path.join(self.input_dir, 'enfsi')
 
-    def get_rel_path(self)->str:
-        return 'enfsi'
+    # def get_rel_path(self)->str:
+    #     return 'enfsi'
         
     def get_all_image_paths(self):
         pass
@@ -508,13 +507,13 @@ class Enfsi(FaceDataBase):
 # %% ../nbs/04_databases.ipynb 10
 class Enfsi2015(FaceDataBase):
     def __init__(self, input_dir):
-        super().__init__(input_dir, source = 'ENFSI') 
+        super().__init__(input_dir, source = 'ENFSI', rel_path=os.path.join('enfsi', '2015')) 
 
-    def get_path(self):
-        return os.path.join(self.input_dir, 'enfsi', '2015')
+    # def get_path(self):
+    #     return os.path.join(self.input_dir, 'enfsi', '2015')
 
-    def get_rel_path(self)->str:
-        return os.path.join('enfsi', '2015')
+    # def get_rel_path(self)->str:
+    #     return os.path.join('enfsi', '2015')
 
     def get_all_image_paths(self):
         pass
@@ -646,13 +645,13 @@ class Enfsi2015(FaceDataBase):
 # %% ../nbs/04_databases.ipynb 11
 class ChokePoint(FaceDataBase):
     def __init__(self, input_dir):
-        super().__init__(input_dir, source = 'ChokePoint') 
+        super().__init__(input_dir, source = 'ChokePoint', rel_path = 'ChokePoint') 
 
-    def get_path(self):
-        return os.path.join(self.input_dir, 'ChokePoint')
+    # def get_path(self):
+    #     return os.path.join(self.input_dir, 'ChokePoint')
 
-    def get_rel_path(self):
-        return 'ChokePoint'
+    # def get_rel_path(self):
+    #     return 'ChokePoint'
 
     def get_all_image_paths(self):
         groundtruth = self.get_groundtruth()
