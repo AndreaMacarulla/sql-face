@@ -35,13 +35,10 @@ def get_session(
             print(f'Creating output directory at {output_dir}')
             os.mkdir(output_dir)
             
-        print(f'Creating Db file at {db_path}')
-        Base.metadata.create_all(engine)
-    else:
-        # If the database file exists, update the tables in Base
-        Base.metadata.create_all(engine, checkfirst=True)
+        print(f'Creating Db file at {db_path}')        
     
-
+    # If the database file exists, update the tables in Base
+    Base.metadata.create_all(engine, checkfirst=True)
     Session = sessionmaker()
     Session.configure(bind=engine)
     session = Session()
