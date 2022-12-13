@@ -525,11 +525,10 @@ class Enfsi2015(FaceDataBase):
         #rel_path = os.path.join('enfsi','2015')
         folder = os.path.join(self.path)
         # todo: current experts file is wrong. Change it for the proper one or remove the option.
-        # experts_path = os.path.join(folder, "Experts_LLR.csv")
+        experts_path = os.path.join(folder, "Experts_LLR.csv")
 
-        with open(os.path.join(folder, 'truth.csv')) as f:
-            #    , open(os.path.join(experts_path)) as exprt:
-            # reader_experts = pd.read_csv(exprt)
+        with open(os.path.join(folder, 'truth.csv')) as f, open(os.path.join(experts_path)) as exprt:
+            reader_experts = pd.read_csv(exprt)
             reader = csv.DictReader(f)
 
             for line in reader:
@@ -551,10 +550,10 @@ class Enfsi2015(FaceDataBase):
                 ref_images = self.fill_reference(
                     session, references, reference_id)
 
-                # exp_line = reader_experts.loc[reader_experts['id'] == idx].to_numpy(dtype='float16')
-                # experts = exp_line[0, 1:]
+                exp_line = reader_experts.loc[reader_experts['id'] == idx].to_numpy(dtype='float16')
+                experts = exp_line[0, 1:]
 
-                self.fill_enfsipair2015(session, qry_images, ref_images, same)
+                self.fill_enfsipair2015(session, qry_images, ref_images, same, experts)
                 session.commit()
 
     @staticmethod
@@ -620,7 +619,7 @@ class Enfsi2015(FaceDataBase):
         return images
 
     @staticmethod
-    def fill_enfsipair2015(session, qry_images, ref_images, same):
+    def fill_enfsipair2015(session, qry_images, ref_images, same, experts):
 
         for qry_image, ref_image in product(qry_images, ref_images):
 
@@ -636,9 +635,12 @@ class Enfsi2015(FaceDataBase):
                     first=qry_image,
                     second=ref_image,
                     same=same,
+                    ExpertsLLR = experts,
                     comparison=int(ref_image.identity.split('-')[-1])
                 )
-            session.add(enfsi_pair)
+                session.add(enfsi_pair)
+            else:
+                enfsi_pair.ExpertsLLR = experts
 
         session.commit()
 
