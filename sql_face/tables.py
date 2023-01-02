@@ -234,6 +234,9 @@ class Pair:
         self.first = first
         self.second = second
         self.same_identity = self.is_same()
+        self.n_common_attributes = self.get_n_common_attributes()
+
+
 
     def is_same(self):
         """
@@ -244,6 +247,33 @@ class Pair:
         """
         return self.first.identity == self.second.identity and self.first.source == self.second.source
 
+    def get_n_common_attributes(self):
+        n = 0
+        if self.first.gender != None and self.first.gender == self.second.gender:
+            n +=1
+        if self.first.age != None and self.first.age == self.second.age:
+            n +=1
+        if self.first.emotion != None and self.first.emotion == self.second.emotion:
+            n +=1
+        if self.first.race != None and self.first.race == self.second.race:
+            n +=1
+        if self.first.yaw != None and self.first.yaw == self.second.yaw:
+            n +=1
+        if self.first.pitch != None and self.first.pitch == self.second.pitch:
+            n +=1
+        if self.first.roll != None and self.first.roll == self.second.roll:
+            n +=1
+        if self.first.headgear != None and self.first.headgear == self.second.headgear:
+            n +=1
+        if self.first.glasses != None and self.first.glasses == self.second.glasses:
+            n +=1
+        if self.first.beard != None and self.first.beard == self.second.beard:
+            n +=1
+        if self.first.other_occlusions != None and self.first.other_occlusions == self.second.other_occlusions:
+            n +=1
+        
+        return n
+        
 
     def get_category(self, im_category_list, fi_cat_list, detector, embedding_model):
         return tuple((self.first.get_category(im_category_list, fi_cat_list, detector, embedding_model),
@@ -295,9 +325,10 @@ class Pair:
 
 # %% ../nbs/03_tables.ipynb 23
 class EnfsiPair(Base, Pair):
+
     __tablename__ = "enfsiPair"
     enfsiPair_id = Column(Integer, primary_key=True)
-
+    
     same = Column(Boolean)
     ExpertsLLR = Column(PickleType)
 
@@ -314,8 +345,11 @@ class EnfsiPair(Base, Pair):
         'polymorphic_on': enfsi_type
     }
 
+
+
 # %% ../nbs/03_tables.ipynb 24
 class EnfsiPair2015(EnfsiPair):
+
     __tablename__ = 'enfsiPair2015'
     enfsiPair2015_id = Column(Integer, ForeignKey('enfsiPair.enfsiPair_id'), primary_key=True)
 
