@@ -6,7 +6,7 @@ __all__ = ['get_session', 'create_detectors', 'create_embedding_models', 'create
            'update_gender', 'update_age', 'update_emotion', 'update_race', 'update_images', 'update_cropped_images',
            'update_face_images', 'update_embeddings', 'update_quality_images', 'update_ser_fiq', 'update_tface']
 
-# %% ../nbs/02_alchemy.ipynb 3
+# %% ../nbs/02_alchemy.ipynb 4
 import os
 
 from typing import List
@@ -23,11 +23,11 @@ from sql_face.tables import Base, Image, Detector, CroppedImage, EmbeddingModel,
 from sql_face.tables import Gender, Age, Race, Emotion
 from sql_face.tface import get_network, compute_tf_quality
 
-# %% ../nbs/02_alchemy.ipynb 5
+# %% ../nbs/02_alchemy.ipynb 6
 def get_session(
     output_dir:str, # Output directory
     db_name:str, # .db file name
-                    ):  
+                    ): # SQL alchemy session 
     db_path = os.path.join(output_dir,db_name+'.db')       
     engine = create_engine(f"sqlite:///{db_path}")
     if not os.path.exists(db_path):
@@ -44,10 +44,10 @@ def get_session(
     session = Session()
     return session
 
-# %% ../nbs/02_alchemy.ipynb 7
+# %% ../nbs/02_alchemy.ipynb 8
 def create_detectors(
-                session,
-                detector_names: List[str]
+                session, #SQL alchemy session object
+                detector_names: List[str] # List of detectors to add to the database.
                 ):
         
         for detector_entry in detector_names:
@@ -61,9 +61,9 @@ def create_detectors(
                         session.add(detector)
                 session.commit()
 
-# %% ../nbs/02_alchemy.ipynb 8
-def create_embedding_models(session,
-                            embedding_model_names: List[str]):
+# %% ../nbs/02_alchemy.ipynb 9
+def create_embedding_models(session, #SQL alchemy session object
+                            embedding_model_names: List[str]): # List of embedding model names to add to the database.
         
         for emb_model_entry in embedding_model_names:
             emb_model = (
@@ -76,9 +76,9 @@ def create_embedding_models(session,
                 session.add(emb_model)
         session.commit()
 
-# %% ../nbs/02_alchemy.ipynb 9
-def create_quality_models(session,
-                            quality_model_names: List[str]):
+# %% ../nbs/02_alchemy.ipynb 10
+def create_quality_models(session, # SQL alchemy session object.
+                            quality_model_names: List[str]): # # List of quality models to add to the database.
         
         for qua_model_entry in quality_model_names:
             qua_model = (
@@ -91,8 +91,11 @@ def create_quality_models(session,
                 session.add(qua_model)
         session.commit()
 
-# %% ../nbs/02_alchemy.ipynb 10
-def fill_cropped_image_serfiq(cr_img: CroppedImage, input_dir, ser_fiq):
+# %% ../nbs/02_alchemy.ipynb 11
+def fill_cropped_image_serfiq(cr_img: CroppedImage, # CroppedImage object to be filled with bounding box and landmarks information.
+                                input_dir, # Directory where the images are stored.
+                                ser_fiq): #SERFIQ model object.
+                                
         image = cr_img.images.get_image(input_dir)
         aligned_img = ser_fiq.apply_mtcnn(image)
         if aligned_img is None:
@@ -100,14 +103,14 @@ def fill_cropped_image_serfiq(cr_img: CroppedImage, input_dir, ser_fiq):
             cr_img.face_detected = False
         elif len(aligned_img) ==0:
             cr_img.bounding_box = []
-            cr_img.face_detected = True
+            cr_img.face_detected = False
         else:
             bbox, points = ser_fiq.detector.detect_face(image)
             cr_img.bounding_box = bbox[0].tolist()
             cr_img.landmarks = points[0].tolist()
             cr_img.face_detected = True
 
-# %% ../nbs/02_alchemy.ipynb 11
+# %% ../nbs/02_alchemy.ipynb 12
 def fill_cropped_image_general(cr_img: CroppedImage, input_dir, **kwargs):
     image = cr_img.images.get_image(input_dir)      
     
@@ -130,7 +133,7 @@ def fill_cropped_image_general(cr_img: CroppedImage, input_dir, **kwargs):
 
 
 
-# %% ../nbs/02_alchemy.ipynb 12
+# %% ../nbs/02_alchemy.ipynb 13
 def create_cropped_images(session, input_dir:str, serfiq = None):
         
         all_detectors = (session.query(Detector).all())
@@ -161,7 +164,7 @@ def create_cropped_images(session, input_dir:str, serfiq = None):
                 session.add(cropped_image)
                 session.commit()
 
-# %% ../nbs/02_alchemy.ipynb 13
+# %% ../nbs/02_alchemy.ipynb 14
 def create_face_images(session):
         
     all_embedding_models = (session.query(EmbeddingModel).all())
@@ -182,7 +185,7 @@ def create_face_images(session):
             session.add(face_image)
             session.commit()
 
-# %% ../nbs/02_alchemy.ipynb 14
+# %% ../nbs/02_alchemy.ipynb 15
 def create_quality_images(session):
         
         all_quality_models = (session.query(QualityModel).all())
@@ -202,7 +205,7 @@ def create_quality_images(session):
                 session.add(qua_image)
                 session.commit()
 
-# %% ../nbs/02_alchemy.ipynb 16
+# %% ../nbs/02_alchemy.ipynb 17
 def update_gender(session, input_dir:str, databases:List[FaceDataBase], force_update: bool = False):
     for db in databases:
         query = session.query(Image).filter(Image.source == db.source)
@@ -217,7 +220,7 @@ def update_gender(session, input_dir:str, databases:List[FaceDataBase], force_up
             img.gender = Gender(filters["gender"])
             session.commit()
 
-# %% ../nbs/02_alchemy.ipynb 17
+# %% ../nbs/02_alchemy.ipynb 18
 def update_age(session, input_dir:str, databases:List[FaceDataBase],force_update: bool = False):
     for db in databases:
         query = session.query(Image).filter(Image.source == db.source)
@@ -234,7 +237,7 @@ def update_age(session, input_dir:str, databases:List[FaceDataBase],force_update
             
             session.commit()
 
-# %% ../nbs/02_alchemy.ipynb 18
+# %% ../nbs/02_alchemy.ipynb 19
 def update_emotion(session, input_dir:str, databases:List[FaceDataBase],force_update: bool = False):
     for db in databases:
         query = session.query(Image).filter(Image.source == db.source)
@@ -250,7 +253,7 @@ def update_emotion(session, input_dir:str, databases:List[FaceDataBase],force_up
             img.emotion = Emotion(prime_emotion)
             session.commit()
 
-# %% ../nbs/02_alchemy.ipynb 19
+# %% ../nbs/02_alchemy.ipynb 20
 def update_race(session, databases:List[FaceDataBase], force_update: bool = False):
     for db in databases:
         query = session.query(Image).filter(Image.source == db.source)
@@ -266,7 +269,7 @@ def update_race(session, databases:List[FaceDataBase], force_update: bool = Fals
             img.race = Race(prime_race)
             session.commit()
 
-# %% ../nbs/02_alchemy.ipynb 20
+# %% ../nbs/02_alchemy.ipynb 21
 def update_images(session, input_dir,
                 databases:List[FaceDataBase], 
                 attributes: List[str], 
@@ -286,7 +289,7 @@ def update_images(session, input_dir,
     if 'race' in attributes:
         update_race(session, input_dir, databases, force_update) 
 
-# %% ../nbs/02_alchemy.ipynb 22
+# %% ../nbs/02_alchemy.ipynb 23
 def update_cropped_images(session, input_dir:str, force_update: bool = False, serfiq = None):
         
     query = session.query(CroppedImage).join(Detector)
@@ -316,12 +319,12 @@ def update_cropped_images(session, input_dir:str, force_update: bool = False, se
         session.commit()
 
 
-# %% ../nbs/02_alchemy.ipynb 23
+# %% ../nbs/02_alchemy.ipynb 24
 def update_face_images(session, input_dir:str, force_update: bool = False):
     update_embeddings(session, input_dir, force_update)
 # self.update_confusion_score(force_update)
 
-# %% ../nbs/02_alchemy.ipynb 24
+# %% ../nbs/02_alchemy.ipynb 25
 def update_embeddings(session, input_dir:str, force_update: bool = False):
     
     query = session.query(FaceImage, EmbeddingModel, Detector, Image) \
@@ -342,13 +345,13 @@ def update_embeddings(session, input_dir:str, force_update: bool = False):
 
         session.commit()
 
-# %% ../nbs/02_alchemy.ipynb 25
+# %% ../nbs/02_alchemy.ipynb 26
 def update_quality_images(session, input_dir, serfiq=None, force_update: bool = False):
     
     update_ser_fiq(session, input_dir, serfiq = serfiq, force_update=force_update)
     update_tface(session, input_dir,  serfiq = serfiq, force_update=force_update)         
 
-# %% ../nbs/02_alchemy.ipynb 26
+# %% ../nbs/02_alchemy.ipynb 27
 def update_ser_fiq(session, input_dir, serfiq = None, force_update: bool = False):
     
     # todo: Now it is only for ArcFace, it should be expanded to other embedding models.
@@ -375,7 +378,7 @@ def update_ser_fiq(session, input_dir, serfiq = None, force_update: bool = False
         row.QualityImage.quality = quality
         session.commit()
 
-# %% ../nbs/02_alchemy.ipynb 27
+# %% ../nbs/02_alchemy.ipynb 28
 def update_tface(session, input_dir, serfiq, force_update: bool = False):
     ser_fiq = serfiq
 
