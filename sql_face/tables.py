@@ -145,6 +145,29 @@ class Image(Base):
         abs_path = os.path.join(input_dir, self.path)
         return cv2.imread(abs_path)
 
+    def get_category(self, im_category_list, fi_cat_list, detector, embedding_model):
+        # todo: clean some day.
+        return tuple(
+            self.get_im_category(im_category_list) + self.get_fi_category(fi_cat_list, detector, embedding_model))
+
+    def get_im_category(self, im_category_list):
+        category_values = [self.__dict__[category] for category in im_category_list]
+        return category_values
+
+    def get_fi_category(self, fi_cat_list, detector, embedding_model):
+        # todo: if more face image categories are added, change function.
+        confusion_score = [face_image.confusion_score for cropped_image in self.croppedImages if
+                           cropped_image.detectors.name == detector
+                           for face_image in cropped_image.faceImages if
+                           face_image.embeddingModels.name == embedding_model]
+        assert len(confusion_score) <= 1
+        if len(confusion_score) == 0:
+            return None
+        if not fi_cat_list:
+            return []
+        return confusion_score  # list as it were several categories.
+
+
 # %% ../nbs/03_tables.ipynb 10
 @declarative_mixin
 class SCFaceMixin:
