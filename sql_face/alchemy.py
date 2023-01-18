@@ -147,7 +147,7 @@ def create_cropped_images(session, input_dir:str, serfiq = None):
                 fill_cropped_image(cropped_image, input_dir, ser_fiq = serfiq)
                 cropped_images.append(cropped_image)
 
-                if count % 1000 == 0:
+                if count % 100 == 0:
                     session.bulk_save_objects(cropped_images)
                     session.commit()
                     cropped_images = []
@@ -240,7 +240,7 @@ def update_gender(session, input_dir:str, databases:List[FaceDataBase], force_up
             updated_images.append({"image_id": img.image_id, "gender": img.gender})
             
             count += 1
-            if count % 1000 == 0:
+            if count % 100 == 0:
                 session.bulk_update_mappings(Image, updated_images)
                 session.commit()
                 updated_images = []
@@ -278,7 +278,7 @@ def update_age(session, input_dir:str, databases:List[FaceDataBase],force_update
             
             count += 1
 
-            if count % 1000 == 0:
+            if count % 100 == 0:
                 session.bulk_update_mappings(Image, updated_images)
                 session.flush()
                 session.commit()
@@ -316,7 +316,7 @@ def update_emotion(session, input_dir:str, databases:List[FaceDataBase],force_up
             updated_images.append({"image_id": img.image_id, "emotion": img.emotion})
             
             count += 1
-            if count % 1000 == 0:
+            if count % 100 == 0:
                 session.bulk_update_mappings(Image, updated_images)
                 session.flush()
                 session.commit()
@@ -350,7 +350,7 @@ def update_race(session, input_dir:str, databases:List[FaceDataBase], force_upda
 
             updated_images.append({"image_id": img.image_id, "race": img.race})
             count += 1
-            if count % 1000 == 0:
+            if count % 100 == 0:
                 session.bulk_update_mappings(Image, updated_images)
                 session.flush()
                 updated_images = []
