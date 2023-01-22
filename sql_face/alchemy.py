@@ -515,7 +515,8 @@ def update_embeddings_qmagface(session, input_dir:str, force_update: bool = Fals
             img = face_img.CroppedImage.get_aligned_image(input_dir)
             embedding = compute_qmagface_embeddings(img, model)
             face_img.FaceImage.embeddings = embedding
-            updated_face_images.append({"faceImage_id": face_img.FaceImage.faceImage_id, "embeddings": face_img.FaceImage.embeddings})
+            # updated_face_images.append({"faceImage_id": face_img.FaceImage.faceImage_id, "embeddings": face_img.FaceImage.embeddings})
+            updated_face_images.append({"faceImage_id": face_img[0].faceImage_id, "embeddings": face_img[0].embeddings})
             count += 1
             if count % 100 == 0:
                 session.bulk_update_mappings(FaceImage, updated_face_images)
