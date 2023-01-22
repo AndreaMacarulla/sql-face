@@ -473,23 +473,28 @@ def update_embeddings_deepface(session, input_dir:str, force_update: bool = Fals
 
     updated_face_images = []
     count = 0
-    
-    with session.begin(subtransactions=True):
-        for face_img in tqdm(all_face_img, desc='Computing embeddings DeepFace'):
-            embedding = DeepFace.represent(face_img.Image.get_image(input_dir), detector_backend=face_img.Detector.name,
-                                        model_name=face_img.EmbeddingModel.name, enforce_detection=True)
-            face_img.FaceImage.embeddings = embedding
-            updated_face_images.append({"faceImage_id": face_img.FaceImage.faceImage_id, "embeddings": face_img.FaceImage.embeddings})
-            count += 1
-            if count % 100 == 0:
+
+    for face_img in tqdm(all_face_img, desc='Computing embeddings DeepFace'):
+        embedding = DeepFace.represent(face_img.Image.get_image(input_dir), detector_backend=face_img.Detector.name,
+                                    model_name=face_img.EmbeddingModel.name, enforce_detection=True)
+        face_img.FaceImage.embeddings = embedding
+        updated_face_images.append({"faceImage_id": face_img.FaceImage.faceImage_id, "embeddings": face_img.FaceImage.embeddings})
+        count += 1
+        if count % 100 == 0:
+            try:
                 session.bulk_update_mappings(FaceImage, updated_face_images)
                 session.commit()
                 updated_face_images = []
-        if updated_face_images:
+            except:
+                session.rollback()
+                raise Exception("Error updating embeddings for FaceImages in the database")
+    if updated_face_images:
+        try:
             session.bulk_update_mappings(FaceImage, updated_face_images)
-            session.flush()
-    session.commit()
-
+            session.commit()
+        except:
+            session.rollback()
+            raise Exception("Error updating embeddings for FaceImages in the database")
 
 # %% ../nbs/02_alchemy.ipynb 38
 def update_embeddings_qmagface(session, input_dir:str, force_update: bool = False):
