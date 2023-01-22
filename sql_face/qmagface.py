@@ -22,9 +22,6 @@ import sys
 sys.path.append("..")
 
 # %% ../nbs/08_qmagface.ipynb 6
-__all__ = ['iresnet18', 'iresnet34', 'iresnet50', 'iresnet100']
-
-# %% ../nbs/08_qmagface.ipynb 7
 def conv3x3(in_planes, out_planes, stride=1, groups=1, dilation=1):
     """3x3 convolution with padding"""
     return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
@@ -35,7 +32,7 @@ def conv1x1(in_planes, out_planes, stride=1):
     """1x1 convolution"""
     return nn.Conv2d(in_planes, out_planes, kernel_size=1, stride=stride, bias=False)
 
-# %% ../nbs/08_qmagface.ipynb 8
+# %% ../nbs/08_qmagface.ipynb 7
 class IBasicBlock(nn.Module):
     expansion = 1
 
@@ -75,7 +72,7 @@ class IBasicBlock(nn.Module):
 
         return out
 
-# %% ../nbs/08_qmagface.ipynb 9
+# %% ../nbs/08_qmagface.ipynb 8
 class IResNet(nn.Module):
     fc_scale = 7 * 7
 
@@ -167,7 +164,7 @@ class IResNet(nn.Module):
 
         return x
 
-# %% ../nbs/08_qmagface.ipynb 10
+# %% ../nbs/08_qmagface.ipynb 9
 def _iresnet(arch, block, layers, pretrained, progress, **kwargs):
     model = IResNet(block, layers, **kwargs)
     # if pretrained:
@@ -195,7 +192,7 @@ def iresnet100(pretrained=False, progress=True, **kwargs):
     return _iresnet('iresnet100', IBasicBlock, [3, 13, 30, 3], pretrained, progress,
                     **kwargs)
 
-# %% ../nbs/08_qmagface.ipynb 12
+# %% ../nbs/08_qmagface.ipynb 11
 def load_features(args):
     if args.arch == 'iresnet34':
         features = iresnet34(
@@ -221,7 +218,7 @@ def load_features(args):
         raise ValueError()
     return features
 
-# %% ../nbs/08_qmagface.ipynb 13
+# %% ../nbs/08_qmagface.ipynb 12
 def load_dict_inf(args, model):
     if os.path.isfile(args.resume):
         print('=> loading pth from {} ...'.format(args.resume))
@@ -240,7 +237,7 @@ def load_dict_inf(args, model):
         sys.exit("=> No checkpoint found at '{}'".format(args.resume))
     return model
 
-# %% ../nbs/08_qmagface.ipynb 14
+# %% ../nbs/08_qmagface.ipynb 13
 def clean_dict_inf(model, state_dict):
     _state_dict = OrderedDict()
     for k, v in state_dict.items():
@@ -261,7 +258,7 @@ def clean_dict_inf(model, state_dict):
             num_model, num_ckpt))
     return _state_dict
 
-# %% ../nbs/08_qmagface.ipynb 15
+# %% ../nbs/08_qmagface.ipynb 14
 class NetworkBuilder_inf(nn.Module):
     def __init__(self, args):
         super(NetworkBuilder_inf, self).__init__()
@@ -272,18 +269,18 @@ class NetworkBuilder_inf(nn.Module):
         x = self.features(input)
         return x
 
-# %% ../nbs/08_qmagface.ipynb 16
+# %% ../nbs/08_qmagface.ipynb 15
 def builder_inf(args):
     model = NetworkBuilder_inf(args)
     # Used to run inference
     model = load_dict_inf(args, model)
     return model
 
-# %% ../nbs/08_qmagface.ipynb 17
+# %% ../nbs/08_qmagface.ipynb 16
 # model_path = os.path.join('models', 'qmagface', 'magface_epoch_00025.pth')
 
 
-def get_model(model_path = os.path.join('models', 'qmagface', 'magface_epoch_00025.pth')):
+def load_model(model_path = os.path.join('models', 'qmagface', 'magface_epoch_00025.pth')):
     Args = namedtuple('Args', ['arch', 'resume', 'embedding_size', 'cpu_mode'])
     args = Args('iresnet100', model_path, 512, True)
     model = builder_inf(args)
@@ -291,10 +288,10 @@ def get_model(model_path = os.path.join('models', 'qmagface', 'magface_epoch_000
     model.eval()
     return model
 
-# %% ../nbs/08_qmagface.ipynb 18
+# %% ../nbs/08_qmagface.ipynb 17
 def compute_qmagface_embeddings(aligned_img:np.array, model)->np.array:    
     trans = torchvision.transforms.ToTensor()
-    input_ = trans(img)
+    input_ = trans(aligned_img)
     input_ = input_.unsqueeze(0)
     with torch.no_grad():
         embedding = model(input_).to('cpu')
