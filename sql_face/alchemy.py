@@ -479,7 +479,7 @@ def update_embeddings_deepface(session, input_dir:str, force_update: bool = Fals
             embedding = DeepFace.represent(face_img.Image.get_image(input_dir), detector_backend=face_img.Detector.name,
                                         model_name=face_img.EmbeddingModel.name, enforce_detection=True)
             face_img.FaceImage.embeddings = embedding
-            updated_face_images.append({"FaceImage_id": face_img.FaceImage.faceImage_id, "embeddings": face_img.FaceImage.embeddings})
+            updated_face_images.append({"faceImage_id": face_img.FaceImage.faceImage_id, "embeddings": face_img.FaceImage.embeddings})
             count += 1
             if count % 100 == 0:
                 session.bulk_update_mappings(FaceImage, updated_face_images)
@@ -515,7 +515,7 @@ def update_embeddings_qmagface(session, input_dir:str, force_update: bool = Fals
             img = face_img.CroppedImage.get_aligned_image(input_dir)
             embedding = compute_qmagface_embeddings(img, model)
             face_img.FaceImage.embeddings = embedding
-            updated_face_images.append({"FaceImage_id": face_img.FaceImage.faceImage_id, "embeddings": face_img.FaceImage.embeddings})
+            updated_face_images.append({"faceImage_id": face_img.FaceImage.faceImage_id, "embeddings": face_img.FaceImage.embeddings})
             count += 1
             if count % 100 == 0:
                 session.bulk_update_mappings(FaceImage, updated_face_images)
