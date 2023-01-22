@@ -494,12 +494,10 @@ def update_embeddings_deepface(session, input_dir:str, force_update: bool = Fals
 # %% ../nbs/02_alchemy.ipynb 38
 def update_embeddings_qmagface(session, input_dir:str, force_update: bool = False):
 
-    query = session.query(FaceImage, CroppedImage) \
+    query = session.query(FaceImage,CroppedImage) \
         .join(EmbeddingModel) \
-        .join(CroppedImage,CroppedImage.croppedImage_id == FaceImage.croppedImage_id) \
-        .join(Detector) \
-        .join(Image, Image.image_id == CroppedImage.image_id) \
-        .filter(EmbeddingModel.name == 'QMagFace')
+        .filter(EmbeddingModel.name == 'QMagFace') \
+        .join(CroppedImage,CroppedImage.croppedImage_id == FaceImage.croppedImage_id)
 
     if not force_update:
         query = query.filter(FaceImage.embeddings == None)
@@ -510,22 +508,27 @@ def update_embeddings_qmagface(session, input_dir:str, force_update: bool = Fals
     updated_face_images = []
     count = 0
 
-    with session.begin(subtransactions=True):
-        for face_img in tqdm(all_face_img, desc='Computing embeddings QMagFace'):
-            img = face_img.CroppedImage.get_aligned_image(input_dir)
-            embedding = compute_qmagface_embeddings(img, model)
-            face_img.FaceImage.embeddings = embedding
-            # updated_face_images.append({"faceImage_id": face_img.FaceImage.faceImage_id, "embeddings": face_img.FaceImage.embeddings})
-            updated_face_images.append({"faceImage_id": face_img[0].faceImage_id, "embeddings": face_img[0].embeddings})
-            count += 1
-            if count % 100 == 0:
+    for face_img in tqdm(all_face_img, desc='Computing embeddings QMagFace'):
+        img = face_img.CroppedImage.get_aligned_image(input_dir)
+        embedding = compute_qmagface_embeddings(img, model)
+        face_img.FaceImage.embeddings = embedding
+        updated_face_images.append({"faceImage_id": face_img.FaceImage.faceImage_id, "embeddings": face_img.FaceImage.embeddings})
+        count += 1
+        if count % 100 == 0:
+            try:
                 session.bulk_update_mappings(FaceImage, updated_face_images)
                 session.commit()
                 updated_face_images = []
-        if updated_face_images:
+            except:
+                session.rollback()
+                raise Exception("Error updating embeddings for FaceImages in the database")
+    if updated_face_images:
+        try:
             session.bulk_update_mappings(FaceImage, updated_face_images)
-            session.flush()
-    session.commit()
+            session.commit()
+        except:
+            session.rollback()
+            raise Exception("Error updating embeddings for FaceImages in the database")
 
 # %% ../nbs/02_alchemy.ipynb 40
 def update_quality_images(session, input_dir, serfiq=None, force_update: bool = False):
