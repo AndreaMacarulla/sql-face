@@ -72,5 +72,5 @@ class SQLDataBase:
                     ):        
         update_images(self.session, self.input_dir, self.databases, attributes_to_update, force_update = force_update)
         update_cropped_images(self.session, self.input_dir, force_update = force_update, serfiq = serfiq)
-        update_face_images(self.session, self.input_dir, force_update = force_update)
+        update_face_images(self.session, self.input_dir, force_update = force_update, serfiq= serfiq)
         update_quality_images(self.session, self.input_dir, serfiq = serfiq, force_update = force_update)

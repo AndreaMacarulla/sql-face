@@ -452,9 +452,9 @@ def update_cropped_images(session, input_dir:str, force_update: bool = False, se
 
 
 # %% ../nbs/02_alchemy.ipynb 35
-def update_face_images(session, input_dir:str, force_update: bool = False):
+def update_face_images(session, input_dir:str, force_update: bool = False, serfiq = None):
     update_embeddings_deepface(session, input_dir, force_update)
-    update_embeddings_qmagface(session, input_dir, force_update)
+    update_embeddings_qmagface(session, input_dir, force_update, serfiq)
 # self.update_confusion_score(force_update)
 
 # %% ../nbs/02_alchemy.ipynb 36
@@ -497,7 +497,7 @@ def update_embeddings_deepface(session, input_dir:str, force_update: bool = Fals
             raise Exception("Error updating embeddings for FaceImages in the database")
 
 # %% ../nbs/02_alchemy.ipynb 38
-def update_embeddings_qmagface(session, input_dir:str, force_update: bool = False):
+def update_embeddings_qmagface(session, input_dir:str, force_update: bool = False, serfiq = None):
 
     query = session.query(FaceImage,CroppedImage) \
         .join(EmbeddingModel) \
@@ -514,7 +514,7 @@ def update_embeddings_qmagface(session, input_dir:str, force_update: bool = Fals
     count = 0
 
     for face_img in tqdm(all_face_img, desc='Computing embeddings QMagFace'):
-        img = face_img.CroppedImage.get_aligned_image(input_dir)
+        img = face_img.CroppedImage.get_aligned_image(input_dir, ser_fiq = serfiq)
         embedding = compute_qmagface_embeddings(img, model)
         face_img.FaceImage.embeddings = embedding
         updated_face_images.append({"faceImage_id": face_img.FaceImage.faceImage_id, "embeddings": face_img.FaceImage.embeddings})
