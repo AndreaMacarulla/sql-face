@@ -402,22 +402,27 @@ class CroppedImage(Base):
             return image
 
     def get_aligned_image(self, input_dir, target_size:Tuple[int,int]=(112,112), ser_fiq = None):
-        
-        if self.detectors.name == 'mtcnn_serfiq':
-            image = self.images.get_image(input_dir) 
-            aligned_image = ser_fiq.apply_mtcnn(image)                     
-            return np.transpose(aligned_image, (1,2,0)) 
-        
-        else:
-            image = self.images.get_image(input_dir)
-            #img_abs_path = os.path.join(input_dir, self.images.path)
-            #aligned_img = DeepFace.detectFace(img_path = img_abs_path, 
-            aligned_img = DeepFace.detectFace(img_path = image, 
-            target_size = target_size, 
-            detector_backend = self.detectors.name, 
-            align=True,
+        image = self.images.get_image(input_dir)
+
+        #todo: there are some wrong cropped images in the database. Correct in get cropped_img.
+        if image:
+            if self.detectors.name == 'mtcnn_serfiq':
+                # image = self.images.get_image(input_dir) 
+                aligned_image = ser_fiq.apply_mtcnn(image)                     
+                return np.transpose(aligned_image, (1,2,0)) 
+            
+            else:
+                # image = self.images.get_image(input_dir)
+                #img_abs_path = os.path.join(input_dir, self.images.path)
+                #aligned_img = DeepFace.detectFace(img_path = img_abs_path, 
+                aligned_img = DeepFace.detectFace(img_path = image, 
+                target_size = target_size, 
+                detector_backend = self.detectors.name, 
+                align=True,
             enforce_detection=True)
             return aligned_img*255
+        else:
+            print(f'Could not read image cropped id {self.croppedImage_id}')
 
 # %% ../nbs/03_tables.ipynb 28
 class EmbeddingModel(Base):
