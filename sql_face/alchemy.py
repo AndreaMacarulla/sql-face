@@ -453,13 +453,14 @@ def update_cropped_images(session, input_dir:str, force_update: bool = False, se
 
 # %% ../nbs/02_alchemy.ipynb 35
 def update_face_images(session, input_dir:str, force_update: bool = False, serfiq = None):
-    update_embeddings_deepface(session, input_dir, force_update)
-    update_embeddings_qmagface(session, input_dir, force_update, serfiq)
+    update_embeddings_deepface(session, input_dir, force_update, serfiq = serfiq)
+    update_embeddings_qmagface(session, input_dir, force_update, serfiq = serfiq)
 # self.update_confusion_score(force_update)
 
 # %% ../nbs/02_alchemy.ipynb 36
-def update_embeddings_deepface(session, input_dir:str, force_update: bool = False):
+def update_embeddings_deepface(session, input_dir:str, force_update: bool = False, serfiq = None):
 
+    # General case
     query = session.query(FaceImage, EmbeddingModel, Detector, Image) \
         .join(EmbeddingModel) \
         .join(CroppedImage,CroppedImage.croppedImage_id == FaceImage.croppedImage_id) \
@@ -477,6 +478,41 @@ def update_embeddings_deepface(session, input_dir:str, force_update: bool = Fals
     for face_img in tqdm(all_face_img, desc='Computing embeddings DeepFace'):
         embedding = DeepFace.represent(face_img.Image.get_image(input_dir), detector_backend=face_img.Detector.name,
                                     model_name=face_img.EmbeddingModel.name, enforce_detection=True)
+        face_img.FaceImage.embeddings = embedding
+        updated_face_images.append({"faceImage_id": face_img.FaceImage.faceImage_id, "embeddings": face_img.FaceImage.embeddings})
+        count += 1
+        if count % 100 == 0:
+            try:
+                session.bulk_update_mappings(FaceImage, updated_face_images)
+                session.commit()
+                updated_face_images = []
+            except:
+                session.rollback()
+                raise Exception("Error updating embeddings for FaceImages in the database")
+    if updated_face_images:
+        try:
+            session.bulk_update_mappings(FaceImage, updated_face_images)
+            session.commit()
+        except:
+            session.rollback()
+            raise Exception("Error updating embeddings for FaceImages in the database")
+
+    # Mtcnn-serfiq
+    query = session.query(FaceImage, EmbeddingModel, CroppedImage) \
+        .join(EmbeddingModel) \
+        .join(CroppedImage,CroppedImage.croppedImage_id == FaceImage.croppedImage_id) \
+        .filter(EmbeddingModel.name != 'FaceVACs', EmbeddingModel.name != 'QMagFace', Detector.name == 'mtcnn_serfiq')
+
+    if not force_update:
+        query = query.filter(FaceImage.embeddings == None)
+    all_face_img = (query.all())
+
+    updated_face_images = []
+    count = 0
+
+    for face_img in tqdm(all_face_img, desc='Computing embeddings DeepFace'):
+        embedding = DeepFace.represent(face_img.CroppedImage.get_aligned_image(input_dir, ser_fiq = serfiq), detector_backend='skip',
+                                    model_name=face_img.EmbeddingModel.name, enforce_detection=False)
         face_img.FaceImage.embeddings = embedding
         updated_face_images.append({"faceImage_id": face_img.FaceImage.faceImage_id, "embeddings": face_img.FaceImage.embeddings})
         count += 1
