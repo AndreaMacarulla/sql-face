@@ -475,7 +475,7 @@ def update_embeddings_deepface(session, input_dir:str, force_update: bool = Fals
     updated_face_images = []
     count = 0
 
-    for face_img in tqdm(all_face_img, desc='Computing embeddings DeepFace'):
+    for face_img in tqdm(all_face_img, desc='Computing embeddings DeepFace general'):
         embedding = DeepFace.represent(face_img.Image.get_image(input_dir), detector_backend=face_img.Detector.name,
                                     model_name=face_img.EmbeddingModel.name, enforce_detection=True)
         face_img.FaceImage.embeddings = embedding
@@ -501,6 +501,7 @@ def update_embeddings_deepface(session, input_dir:str, force_update: bool = Fals
     query = session.query(FaceImage, EmbeddingModel, CroppedImage) \
         .join(EmbeddingModel) \
         .join(CroppedImage,CroppedImage.croppedImage_id == FaceImage.croppedImage_id) \
+        .join(Detector)\
         .filter(EmbeddingModel.name != 'FaceVACs', EmbeddingModel.name != 'QMagFace', Detector.name == 'mtcnn_serfiq')
 
     if not force_update:
@@ -510,7 +511,7 @@ def update_embeddings_deepface(session, input_dir:str, force_update: bool = Fals
     updated_face_images = []
     count = 0
 
-    for face_img in tqdm(all_face_img, desc='Computing embeddings DeepFace'):
+    for face_img in tqdm(all_face_img, desc='Computing embeddings DeepFace mtcnn-serfiq'):
         embedding = DeepFace.represent(face_img.CroppedImage.get_aligned_image(input_dir, ser_fiq = serfiq), detector_backend='skip',
                                     model_name=face_img.EmbeddingModel.name, enforce_detection=False)
         face_img.FaceImage.embeddings = embedding
