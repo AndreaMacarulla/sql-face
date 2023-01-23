@@ -534,11 +534,13 @@ def update_embeddings_deepface(session, input_dir:str, force_update: bool = Fals
 
 # %% ../nbs/02_alchemy.ipynb 38
 def update_embeddings_qmagface(session, input_dir:str, force_update: bool = False, serfiq = None):
-
+    #todo: removed mediapipe to save time. Put it back.
     query = session.query(FaceImage,CroppedImage) \
         .join(EmbeddingModel) \
         .filter(EmbeddingModel.name == 'QMagFace') \
-        .join(CroppedImage,CroppedImage.croppedImage_id == FaceImage.croppedImage_id)
+        .join(CroppedImage,CroppedImage.croppedImage_id == FaceImage.croppedImage_id) \
+        .join(Detector)\
+        .filter(Detector.name != 'mediapipe')
 
     if not force_update:
         query = query.filter(FaceImage.embeddings == None)
