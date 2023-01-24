@@ -577,13 +577,14 @@ def update_embeddings_qmagface(session, input_dir:str, force_update: bool = Fals
 
 # %% ../nbs/02_alchemy.ipynb 40
 def update_embeddings_arcface(session, input_dir:str, force_update: bool = False, serfiq = None):
+    #todo: removed mediapipe, add later.
     # General case
     query = session.query(FaceImage, Detector, Image) \
         .join(EmbeddingModel) \
         .join(CroppedImage,CroppedImage.croppedImage_id == FaceImage.croppedImage_id) \
         .join(Detector) \
         .join(Image, Image.image_id ==CroppedImage.image_id) \
-        .filter(EmbeddingModel.name == 'ArcFace_normalized', Detector.name != 'mtcnn_serfiq')
+        .filter(EmbeddingModel.name == 'ArcFace_normalized', Detector.name != 'mtcnn_serfiq', Detector.name != 'mediapipe')
 
     if not force_update:
         query = query.filter(FaceImage.embeddings == None)
@@ -619,7 +620,7 @@ def update_embeddings_arcface(session, input_dir:str, force_update: bool = False
         .join(EmbeddingModel) \
         .join(CroppedImage, CroppedImage.croppedImage_id == FaceImage.croppedImage_id) \
         .join(Detector)\
-        .filter(EmbeddingModel.name == 'ArcFace_normalized', Detector.name == 'mtcnn_serfiq')
+        .filter(EmbeddingModel.name == 'ArcFace_normalized', Detector.name == 'mtcnn_serfiq', Detector.name != 'mediapipe')
 
     if not force_update:
         query = query.filter(FaceImage.embeddings == None)
