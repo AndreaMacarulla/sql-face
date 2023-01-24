@@ -4,8 +4,8 @@
 __all__ = ['get_session', 'create_detectors', 'create_embedding_models', 'create_quality_models', 'fill_cropped_image_serfiq',
            'fill_cropped_image_general', 'create_cropped_images', 'create_face_images', 'create_quality_images',
            'update_gender', 'update_age', 'update_emotion', 'update_race', 'update_images', 'update_cropped_images',
-           'update_face_images', 'update_embeddings_deepface', 'update_embeddings_qmagface', 'update_quality_images',
-           'update_ser_fiq', 'update_tface']
+           'update_face_images', 'update_embeddings_deepface', 'update_embeddings_qmagface',
+           'update_embeddings_arcface', 'update_quality_images', 'update_ser_fiq', 'update_tface']
 
 # %% ../nbs/02_alchemy.ipynb 4
 import os
@@ -455,6 +455,7 @@ def update_cropped_images(session, input_dir:str, force_update: bool = False, se
 def update_face_images(session, input_dir:str, force_update: bool = False, serfiq = None):
     update_embeddings_deepface(session, input_dir, force_update, serfiq = serfiq)
     update_embeddings_qmagface(session, input_dir, force_update, serfiq = serfiq)
+    update_embeddings_arcface(session, input_dir, force_update, serfiq = serfiq)
 # self.update_confusion_score(force_update)
 
 # %% ../nbs/02_alchemy.ipynb 36
@@ -466,7 +467,7 @@ def update_embeddings_deepface(session, input_dir:str, force_update: bool = Fals
         .join(CroppedImage,CroppedImage.croppedImage_id == FaceImage.croppedImage_id) \
         .join(Detector) \
         .join(Image, Image.image_id ==CroppedImage.image_id) \
-        .filter(EmbeddingModel.name != 'FaceVACs', EmbeddingModel.name != 'QMagFace', Detector.name != 'mtcnn_serfiq')
+        .filter(EmbeddingModel.name.notin_(['FaceVACs','QMagFace','ArcFace_normalized']), Detector.name != 'mtcnn_serfiq')
 
     if not force_update:
         query = query.filter(FaceImage.embeddings == None)
@@ -502,7 +503,7 @@ def update_embeddings_deepface(session, input_dir:str, force_update: bool = Fals
         .join(EmbeddingModel) \
         .join(CroppedImage,CroppedImage.croppedImage_id == FaceImage.croppedImage_id) \
         .join(Detector)\
-        .filter(EmbeddingModel.name != 'FaceVACs', EmbeddingModel.name != 'QMagFace', Detector.name == 'mtcnn_serfiq')
+        .filter(EmbeddingModel.name.notin_(['FaceVACs','QMagFace','ArcFace_normalized']), Detector.name == 'mtcnn_serfiq')
 
     if not force_update:
         query = query.filter(FaceImage.embeddings == None)
@@ -575,12 +576,87 @@ def update_embeddings_qmagface(session, input_dir:str, force_update: bool = Fals
             raise Exception("Error updating embeddings for FaceImages in the database")
 
 # %% ../nbs/02_alchemy.ipynb 40
+def update_embeddings_arcface(session, input_dir:str, force_update: bool = False, serfiq = None):
+    # General case
+    query = session.query(FaceImage, Detector, Image) \
+        .join(EmbeddingModel) \
+        .join(CroppedImage,CroppedImage.croppedImage_id == FaceImage.croppedImage_id) \
+        .join(Detector) \
+        .join(Image, Image.image_id ==CroppedImage.image_id) \
+        .filter(EmbeddingModel.name == 'ArcFace_normalized', Detector.name != 'mtcnn_serfiq')
+
+    if not force_update:
+        query = query.filter(FaceImage.embeddings == None)
+    all_face_img = (query.all())
+
+    updated_face_images = []
+    count = 0
+
+    for face_img in tqdm(all_face_img, desc='Computing embeddings DeepFace general'):
+        embedding = DeepFace.represent(face_img.Image.get_image(input_dir), detector_backend=face_img.Detector.name,
+                                    model_name='ArcFace', enforce_detection=True, normalization = 'ArcFace')
+        face_img.FaceImage.embeddings = embedding
+        updated_face_images.append({"faceImage_id": face_img.FaceImage.faceImage_id, "embeddings": face_img.FaceImage.embeddings})
+        count += 1
+        if count % 100 == 0:
+            try:
+                session.bulk_update_mappings(FaceImage, updated_face_images)
+                session.commit()
+                updated_face_images = []
+            except:
+                session.rollback()
+                raise Exception("Error updating embeddings for FaceImages in the database")
+    if updated_face_images:
+        try:
+            session.bulk_update_mappings(FaceImage, updated_face_images)
+            session.commit()
+        except:
+            session.rollback()
+            raise Exception("Error updating embeddings for FaceImages in the database")
+
+    # Mtcnn-serfiq
+    query = session.query(FaceImage, CroppedImage) \
+        .join(EmbeddingModel) \
+        .join(CroppedImage, CroppedImage.croppedImage_id == FaceImage.croppedImage_id) \
+        .join(Detector)\
+        .filter(EmbeddingModel.name == 'ArcFace_normalized', Detector.name == 'mtcnn_serfiq')
+
+    if not force_update:
+        query = query.filter(FaceImage.embeddings == None)
+    all_face_img = (query.all())
+
+    updated_face_images = []
+    count = 0
+
+    for face_img in tqdm(all_face_img, desc='Computing embeddings DeepFace mtcnn-serfiq'):
+        embedding = DeepFace.represent(face_img.CroppedImage.get_aligned_image(input_dir, ser_fiq = serfiq), detector_backend='skip',
+                                    model_name='ArcFace', enforce_detection=False, normalization = 'ArcFace')
+        face_img.FaceImage.embeddings = embedding
+        updated_face_images.append({"faceImage_id": face_img.FaceImage.faceImage_id, "embeddings": face_img.FaceImage.embeddings})
+        count += 1
+        if count % 100 == 0:
+            try:
+                session.bulk_update_mappings(FaceImage, updated_face_images)
+                session.commit()
+                updated_face_images = []
+            except:
+                session.rollback()
+                raise Exception("Error updating embeddings for FaceImages in the database")
+    if updated_face_images:
+        try:
+            session.bulk_update_mappings(FaceImage, updated_face_images)
+            session.commit()
+        except:
+            session.rollback()
+            raise Exception("Error updating embeddings for FaceImages in the database")
+
+# %% ../nbs/02_alchemy.ipynb 41
 def update_quality_images(session, input_dir, serfiq=None, force_update: bool = False):
     
     update_ser_fiq(session, input_dir, serfiq = serfiq, force_update=force_update)
     update_tface(session, input_dir,  serfiq = serfiq, force_update=force_update)         
 
-# %% ../nbs/02_alchemy.ipynb 41
+# %% ../nbs/02_alchemy.ipynb 42
 def update_ser_fiq(session, input_dir, serfiq = None, force_update: bool = False):
     
     # todo: Now it is only for ArcFace, it should be expanded to other embedding models.
@@ -607,7 +683,7 @@ def update_ser_fiq(session, input_dir, serfiq = None, force_update: bool = False
         row.QualityImage.quality = quality
         session.commit()
 
-# %% ../nbs/02_alchemy.ipynb 42
+# %% ../nbs/02_alchemy.ipynb 43
 def update_tface(session, input_dir, serfiq, force_update: bool = False):
     ser_fiq = serfiq
 
