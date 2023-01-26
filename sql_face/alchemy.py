@@ -406,8 +406,8 @@ def update_images(session, input_dir,
     update_functions = {
         'gender': update_gender,
         'age': update_age,
-        'emotion': update_emotion,
-        'race': update_race
+        'emotion': update_emotion
+        # 'race': update_race
     }
 
     for attribute in attributes:
