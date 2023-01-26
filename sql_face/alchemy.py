@@ -377,7 +377,7 @@ def update_race(session, input_dir:str, databases:List[FaceDataBase], force_upda
 
         for img in tqdm(all_img, desc='Update race'):
             try:
-                filters = DeepFace.analyze(img_path=img.get_image(input_dir), actions=['race'], enforce_detection=True, detector_backend = 'mediapipe')
+                filters = DeepFace.analyze(img_path=img.get_image(input_dir), actions=['race'], enforce_detection=True, detector_backend = 'mtcnn')
                 races = filters["race"]
                 prime_race = max(races, key=races.get)
                 img.race = Race(prime_race)
