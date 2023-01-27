@@ -503,7 +503,7 @@ def update_embeddings_deepface(session, input_dir:str, force_update: bool = Fals
         .join(EmbeddingModel) \
         .join(CroppedImage,CroppedImage.croppedImage_id == FaceImage.croppedImage_id) \
         .join(Detector)\
-        .filter(EmbeddingModel.name.notin_(['FaceVACs','QMagFace','ArcFace_normalized']), Detector.name == 'mtcnn_serfiq', Detector.name != 'mediapipe')
+        .filter(EmbeddingModel.name.notin_(['FaceVACs','QMagFace','ArcFace_normalized', 'SFace']), Detector.name == 'mtcnn_serfiq', Detector.name != 'mediapipe')
 
     if not force_update:
         query = query.filter(FaceImage.embeddings == None)
