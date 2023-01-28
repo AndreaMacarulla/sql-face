@@ -745,7 +745,7 @@ class ForenFace(FaceDataBase):
         super().__init__(input_dir, source='ForenFace', rel_path='forenface')
 
     def get_all_image_paths(self) -> List[str]:
-        return [os.path.join(self.path, filename) for filename in os.listdir(self.path) if
+        return [os.path.join(self.rel_path, filename) for filename in os.listdir(self.path) if
                 os.path.isfile(os.path.join(self.path, filename))]
 
     @staticmethod
