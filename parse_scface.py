@@ -6,7 +6,6 @@ from face_parser import FaceParser
 
 
 def main(src_data_dir, dst_data_dir, show_imgs, norm_width):
-    face_parser = FaceParser()
     data_src_string = "{}/*.jpg".format(src_data_dir)
     output_file = os.path.join(dst_data_dir, 'attributes.csv')
     f = open(output_file, 'w', encoding='UTF8', newline='')

@@ -109,6 +109,12 @@ class Distance(enum.Enum):
     MEDIUM= 260
     FAR = 420
 
+class Quality(enum.Enum):
+    VERY_LOW = "Very low"
+    LOW = "Low"
+    MEDIUM = 'Medium'
+    HIGH = 'High'
+    VERY_HIGH = 'Very high'
 
 # %% ../nbs/03_tables.ipynb 8
 class Image(Base):
@@ -131,6 +137,7 @@ class Image(Base):
     beard = Column(Boolean)
     other_occlusions = Column(Boolean)
     low_quality = Column(Boolean)
+    image_quality = Column(Enum(Quality))
     
 
     type = Column(String)
@@ -148,7 +155,8 @@ class Image(Base):
     def get_category(self, im_category_list, fi_cat_list, detector, embedding_model):
         # todo: clean some day.
         return tuple(
-            self.get_im_category(im_category_list) + self.get_fi_category(fi_cat_list, detector, embedding_model))
+            self.get_im_category(im_category_list) )
+            # + self.get_fi_category(fi_cat_list, detector, embedding_model))
 
     def get_im_category(self, im_category_list):
         category_values = [self.__dict__[category] for category in im_category_list]
