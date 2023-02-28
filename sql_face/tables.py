@@ -453,6 +453,7 @@ class QualityModel(Base):
     __tablename__ = "qualityModel"
     qualityModel_id = Column(Integer, primary_key=True)
     name = Column(String)
+    threshold = Column(PickleType)
 
 # %% ../nbs/03_tables.ipynb 31
 class QualityImage(Base):
@@ -463,6 +464,7 @@ class QualityImage(Base):
     qualityModel_id = Column(Integer, ForeignKey('qualityModel.qualityModel_id'))
 
     quality = Column(Float)
+    image_quality = Column(Enum(Quality))
     quality_vec = Column(PickleType)
 
     faceImages = relationship("FaceImage", foreign_keys=[faceImage_id])
