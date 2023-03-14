@@ -109,7 +109,7 @@ class Distance(enum.Enum):
     MEDIUM= 260
     FAR = 420
 
-class Quality(enum.Enum):
+class QualityGroup(enum.Enum):
     VERY_LOW = "Very low"
     LOW = "Low"
     MEDIUM = 'Medium'
@@ -137,7 +137,7 @@ class Image(Base):
     beard = Column(Boolean)
     other_occlusions = Column(Boolean)
     low_quality = Column(Boolean)
-    image_quality = Column(Enum(Quality))
+    # image_quality = Column(Enum(Quality))
     
 
     type = Column(String)
@@ -464,7 +464,7 @@ class QualityImage(Base):
     qualityModel_id = Column(Integer, ForeignKey('qualityModel.qualityModel_id'))
 
     quality = Column(Float)
-    image_quality = Column(Enum(Quality))
+    quality_group = Column(Enum(QualityGroup))
     quality_vec = Column(PickleType)
 
     faceImages = relationship("FaceImage", foreign_keys=[faceImage_id])
