@@ -301,7 +301,9 @@ face_parser = FaceParser()
 
 # %% ../nbs/09_faceangles.ipynb 8
 def classify_angle(angle, enum_class, thresholds):
-    return next(enum_value for enum_value, threshold in zip(enum_class, thresholds) if angle < threshold)
+    if angle:
+        return next(enum_value for enum_value, threshold in zip(enum_class, thresholds) if angle < threshold)
+    return None
 
 # %% ../nbs/09_faceangles.ipynb 9
 def compute_angles(img:np.array)->List[float]:
@@ -318,17 +320,24 @@ def compute_angles(img:np.array)->List[float]:
 def compute_pose(angles)->[Pitch, Yaw, Roll]:
 
     #faces, landmarks, angles_all = face_parser.detect_faces_lms_ang(img)
+    pitch = None
+    yaw = None
+    roll = None
 
     if angles:
         ang_pitch, ang_yaw, ang_roll = angles
-        ang_yaw = abs(ang_yaw)
-        ang_roll = abs(ang_roll)       
-
-        
-        roll = classify_angle(ang_roll, Roll, thresholds['roll'])
-        yaw = classify_angle(ang_yaw, Yaw, thresholds['yaw'])
         pitch = classify_angle(ang_pitch, Pitch, thresholds['pitch'])
+            
+        if ang_yaw:
+            ang_yaw = abs(ang_yaw)
+            yaw = classify_angle(ang_yaw, Yaw, thresholds['yaw'])
 
-        return pitch, yaw, roll
+        if ang_roll:
+            ang_roll = abs(ang_roll)
+            roll = classify_angle(ang_roll, Roll, thresholds['roll'])          
         
-    return None, None, None
+        
+
+    return pitch, yaw, roll
+        
+    
