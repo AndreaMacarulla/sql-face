@@ -408,23 +408,27 @@ def update_pose(session, input_dir: str, databases: List[FaceDataBase], force_up
 
         all_images = query.all()
 
+        ncount = 100
         updated_images = []
-        count = 0
+        count = ncount
 
         for img in tqdm(all_images, desc='Update pose'):
         
             img_array = img.get_image(input_dir)
-            roll, yaw, pitch= compute_pose(img_array)
+            angles, pitch, yaw, roll = compute_pose(img_array)
 
             upd_img = {}
             if roll:
+                upd_img['angle_roll'] = angles[2]
                 if force_update or not img.roll:
                     upd_img["roll"] = roll        
             if yaw:
+                upd_img['angle_yaw'] = angles[1]
                 if force_update or not img.yaw:
                     upd_img["yaw"] = yaw
             
             if pitch:
+                upd_img['angle_pitch'] = angles[0]
                 if force_update or not img.pitch:
                     upd_img["pitch"] = pitch
 
@@ -440,13 +444,14 @@ def update_pose(session, input_dir: str, databases: List[FaceDataBase], force_up
             #                         "roll": img.roll, 
             #                         "yaw": img.yaw, 
             #                         "pitch": img.pitch})
-                count += 1
+                count -= 1
 
-                if count % 100 == 0:
+                if count == 0:
                     session.bulk_update_mappings(Image, updated_images)
                     session.flush() 
                     session.commit()
                     updated_images = []
+                    count = ncount
 
         if updated_images:
             session.bulk_update_mappings(Image, updated_images)
