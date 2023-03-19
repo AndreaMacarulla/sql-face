@@ -413,33 +413,25 @@ def update_angles(session, input_dir: str, databases: List[FaceDataBase], force_
         updated_images = []
         count = ncount
 
-        for img in tqdm(all_images, desc='Update pose'):
+        for img in tqdm(all_images, desc='Update angles'):
         
             img_array = img.get_image(input_dir)
-            angles, pitch, yaw, roll = compute_angles(img_array)
+            a_pitch, a_yaw, a_roll = compute_angles(img_array)
 
             upd_img = {}
-            if roll:
-                upd_img['angle_roll'] = angles[2]
+            if a_roll:
+                upd_img['angle_roll'] = a_roll
                     
-            if yaw:
-                upd_img['angle_yaw'] = angles[1]
+            if a_yaw:
+                upd_img['angle_yaw'] = a_yaw
                         
-            if pitch:
-                upd_img['angle_pitch'] = angles[0]
+            if a_pitch:
+                upd_img['angle_pitch'] = a_pitch
             
             if upd_img:
                 upd_img ['image_id'] =img.image_id
                 updated_images.append(upd_img)
-
-
  
-            
-
-            # updated_images.append({"image_id": img.image_id, 
-            #                         "roll": img.roll, 
-            #                         "yaw": img.yaw, 
-            #                         "pitch": img.pitch})
                 count -= 1
 
                 if count == 0:
