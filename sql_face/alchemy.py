@@ -463,7 +463,7 @@ def update_pose(session, input_dir: str, databases: List[FaceDataBase], force_up
 
         for img in tqdm(all_images, desc='Update pose'):
         
-            angles = (img.pitch, img.yaw, img.roll)
+            angles = (img.ang_pitch, img.ang_yaw, img.ang_roll)
             pitch, yaw, roll = compute_pose(angles)
 
             upd_img = {}

@@ -312,7 +312,7 @@ def compute_angles(img:np.array)->List[float]:
         angles = angles_all[0] #only first face
         return angles
         
-    return None
+    return None, None, None
 
 # %% ../nbs/09_faceangles.ipynb 10
 def compute_pose(angles)->[Pitch, Yaw, Roll]:
