@@ -137,6 +137,9 @@ class Image(Base):
     beard = Column(Boolean)
     other_occlusions = Column(Boolean)
     low_quality = Column(Boolean)
+    angle_yaw = Column(Float)
+    angle_pitch = Column(Float)
+    angle_roll = Column(Float)
     # image_quality = Column(Enum(Quality))
     
 
