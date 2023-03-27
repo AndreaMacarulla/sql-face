@@ -5,7 +5,7 @@ __all__ = ['get_session', 'create_detectors', 'create_embedding_models', 'create
            'fill_cropped_image_general', 'create_cropped_images', 'create_face_images', 'create_quality_images',
            'update_gender', 'update_age', 'update_emotion', 'update_race', 'update_angles', 'update_pose',
            'update_images', 'update_cropped_images', 'update_face_images', 'update_embeddings_deepface',
-           'update_embeddings_qmagface', 'update_embeddings_arcface', 'update_quality_images', 'update_ser_fiq',
+           'update_embeddings_qmagface', 'update_embeddings_arcface', 'update_quality_images', 'update_ser_fiq_old',
            'update_tface']
 
 # %% ../nbs/02_alchemy.ipynb 4
@@ -211,7 +211,8 @@ def create_face_images(session):
 
 # %% ../nbs/02_alchemy.ipynb 20
 def create_quality_images(session):
-    all_quality_models = (session.query(QualityModel).all())
+    #TODO: change to all 
+    all_quality_models = (session.query(QualityModel).filter(QualityModel.name == "ser_fiq").all())
     
     for qua in tqdm(all_quality_models, desc='Quality models'):
         subquery = session.query(QualityImage.faceImage_id) \
@@ -556,9 +557,9 @@ def update_cropped_images(session, input_dir:str, force_update: bool = False, se
 
 # %% ../nbs/02_alchemy.ipynb 37
 def update_face_images(session, input_dir:str, force_update: bool = False, serfiq = None):
-    update_embeddings_deepface(session, input_dir, force_update, serfiq = serfiq)
+    # update_embeddings_deepface(session, input_dir, force_update, serfiq = serfiq)
     update_embeddings_qmagface(session, input_dir, force_update, serfiq = serfiq)
-    update_embeddings_arcface(session, input_dir, force_update, serfiq = serfiq)
+    # update_embeddings_arcface(session, input_dir, force_update, serfiq = serfiq)
 # self.update_confusion_score(force_update)
 
 # %% ../nbs/02_alchemy.ipynb 38
@@ -645,7 +646,8 @@ def update_embeddings_qmagface(session, input_dir:str, force_update: bool = Fals
         .filter(EmbeddingModel.name == 'QMagFace') \
         .join(CroppedImage,CroppedImage.croppedImage_id == FaceImage.croppedImage_id) \
         .join(Detector)\
-        .filter(Detector.name != 'mediapipe')
+        .filter(Detector.name == 'mtcnn_serfiq')
+        # .filter(Detector.name != 'mediapipe')
 
     if not force_update:
         query = query.filter(FaceImage.embeddings == None)
@@ -758,10 +760,10 @@ def update_embeddings_arcface(session, input_dir:str, force_update: bool = False
 def update_quality_images(session, input_dir, serfiq=None, force_update: bool = False):
     
     update_ser_fiq(session, input_dir, serfiq = serfiq, force_update=force_update)
-    update_tface(session, input_dir,  serfiq = serfiq, force_update=force_update)         
+    # update_tface(session, input_dir,  serfiq = serfiq, force_update=force_update)         
 
-# %% ../nbs/02_alchemy.ipynb 44
-def update_ser_fiq(session, input_dir, serfiq = None, force_update: bool = False):
+# %% ../nbs/02_alchemy.ipynb 45
+def update_ser_fiq_old(session, input_dir, serfiq = None, force_update: bool = False):
     
     # todo: Now it is only for ArcFace, it should be expanded to other embedding models.
     query = session.query(QualityImage, CroppedImage) \
@@ -787,7 +789,7 @@ def update_ser_fiq(session, input_dir, serfiq = None, force_update: bool = False
         row.QualityImage.quality = quality
         session.commit()
 
-# %% ../nbs/02_alchemy.ipynb 45
+# %% ../nbs/02_alchemy.ipynb 46
 def update_tface(session, input_dir, serfiq, force_update: bool = False):
     ser_fiq = serfiq
 
