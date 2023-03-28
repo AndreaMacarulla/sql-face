@@ -838,9 +838,14 @@ def update_ser_fiq(session, input_dir, serfiq=None, force_update: bool = False):
 
     for row in tqdm(all_rows, desc='Computing SER-FIQ quality'):
         aligned_img = row.CroppedImage.get_aligned_image(input_dir, ser_fiq=serfiq)
-        quality = serfiq.get_score(aligned_img, T=100)
 
-        row.QualityImage.quality = quality
+        if aligned_img is None:
+            quality = None
+            row.QualityImage.quality = quality
+        else:
+            quality = serfiq.get_score(aligned_img, T=100)
+            row.QualityImage.quality = quality
+
         updated_quality_images.append({"qualityImage_id": row.QualityImage.qualityImage_id, "quality": row.QualityImage.quality})
         count += 1
 
