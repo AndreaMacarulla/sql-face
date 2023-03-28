@@ -2,8 +2,8 @@
 
 # %% auto 0
 __all__ = ['get_session', 'create_detectors', 'create_embedding_models', 'create_quality_models', 'fill_cropped_image_serfiq',
-           'fill_cropped_image_general', 'create_cropped_images', 'create_face_images', 'create_quality_images',
-           'create_quality_images_old', 'update_gender', 'update_age', 'update_emotion', 'update_race', 'update_angles',
+           'fill_cropped_image_general', 'create_cropped_images', 'create_face_images', 'create_quality_images_new',
+           'create_quality_images', 'update_gender', 'update_age', 'update_emotion', 'update_race', 'update_angles',
            'update_pose', 'update_images', 'update_cropped_images', 'update_face_images', 'update_embeddings_deepface',
            'update_embeddings_qmagface', 'update_embeddings_arcface', 'update_quality_images', 'update_ser_fiq',
            'update_ser_fiq_old', 'update_tface']
@@ -210,7 +210,7 @@ def create_face_images(session):
                 raise IntegrityError("Could not commit face images")
 
 # %% ../nbs/02_alchemy.ipynb 20
-def create_quality_images(session):
+def create_quality_images_new(session):
     all_quality_models = session.query(QualityModel).filter(QualityModel.name == "ser_fiq").all()
 
     for qua in tqdm(all_quality_models, desc='Quality models'):
@@ -258,9 +258,9 @@ def create_quality_images(session):
 
 
 # %% ../nbs/02_alchemy.ipynb 21
-def create_quality_images_old(session):
+def create_quality_images(session):
     #TODO: change to 
-    all_quality_models = (session.query(QualityModel).all())
+    all_quality_models = (session.query(QualityModel).filter(QualityModel.name == "ser_fiq").all())
     
     for qua in tqdm(all_quality_models, desc='Quality models'):
         subquery = session.query(QualityImage.faceImage_id) \
@@ -708,8 +708,14 @@ def update_embeddings_qmagface(session, input_dir:str, force_update: bool = Fals
 
     for face_img in tqdm(all_face_img, desc='Computing embeddings QMagFace'):
         img = face_img.CroppedImage.get_aligned_image(input_dir, ser_fiq = serfiq)
-        embedding = compute_qmagface_embeddings(img, model)
-        face_img.FaceImage.embeddings = embedding
+        try:
+            embedding = compute_qmagface_embeddings(img, model)
+            face_img.FaceImage.embeddings = embedding
+        except ValueError:
+            embedding = None
+            face_img.FaceImage.embeddings = embedding
+            print(f'Problem with embedding in Image id {face_img.CroppedImage.image_id}')
+
         updated_face_images.append({"faceImage_id": face_img.FaceImage.faceImage_id, "embeddings": face_img.FaceImage.embeddings})
         count += 1
         if count % 100 == 0:
