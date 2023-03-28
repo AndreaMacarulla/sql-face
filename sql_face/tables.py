@@ -417,8 +417,15 @@ class CroppedImage(Base):
         
         if self.detectors.name == 'mtcnn_serfiq':
              
-            aligned_image = ser_fiq.apply_mtcnn(image)                     
-            return np.transpose(aligned_image, (1,2,0)) 
+            aligned_image = ser_fiq.apply_mtcnn(image)
+            #TODO: FIX THIS
+            try:
+                align_img = np.transpose(aligned_image, (1,2,0))
+            except:
+                align_img = None
+                print(f'Problems with {self.image_id}, image detected {self.face_detected}')
+
+            return align_img
         
         else:
             
