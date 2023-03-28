@@ -709,14 +709,13 @@ def update_embeddings_qmagface(session, input_dir:str, force_update: bool = Fals
     for face_img in tqdm(all_face_img, desc='Computing embeddings QMagFace'):
         img = face_img.CroppedImage.get_aligned_image(input_dir, ser_fiq = serfiq)
 
-        if img:
-            embedding = compute_qmagface_embeddings(img, model)
-            face_img.FaceImage.embeddings = embedding
-
-        else:
+        if img is None:
             embedding = None
             face_img.FaceImage.embeddings = embedding
-            print(f'Problem with embedding in Image id {face_img.CroppedImage.image_id}')
+        else:
+            embedding = compute_qmagface_embeddings(img, model)
+            face_img.FaceImage.embeddings = embedding
+            
 
         updated_face_images.append({"faceImage_id": face_img.FaceImage.faceImage_id, "embeddings": face_img.FaceImage.embeddings})
         count += 1
