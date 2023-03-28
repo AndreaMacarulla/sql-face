@@ -712,7 +712,7 @@ def update_embeddings_qmagface(session, input_dir:str, force_update: bool = Fals
             img = face_img.CroppedImage.get_aligned_image(input_dir, ser_fiq = serfiq)
             embedding = compute_qmagface_embeddings(img, model)
             face_img.FaceImage.embeddings = embedding
-        except ValueError:
+        except:
             img = face_img.CroppedImage.get_aligned_image(input_dir, ser_fiq = serfiq)
             embedding = None
             face_img.FaceImage.embeddings = embedding
