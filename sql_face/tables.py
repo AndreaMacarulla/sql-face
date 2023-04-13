@@ -417,8 +417,10 @@ class CroppedImage(Base):
         
         if self.detectors.name == 'mtcnn_serfiq':
              
-            aligned_image = ser_fiq.apply_mtcnn(image)                     
-            return np.transpose(aligned_image, (1,2,0)) 
+            aligned_image = ser_fiq.apply_mtcnn(image)
+            
+            return np.transpose(aligned_image, (1,2,0))
+                
         
         else:
             
@@ -427,8 +429,7 @@ class CroppedImage(Base):
                                             detector_backend = self.detectors.name, 
                                             align=True,
                                             enforce_detection=True)
-            return aligned_image*255
-        
+            return aligned_image*255       
             
 
 # %% ../nbs/03_tables.ipynb 28

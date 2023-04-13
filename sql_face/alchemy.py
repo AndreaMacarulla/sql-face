@@ -6,7 +6,7 @@ __all__ = ['get_session', 'create_detectors', 'create_embedding_models', 'create
            'update_gender', 'update_age', 'update_emotion', 'update_race', 'update_angles', 'update_pose',
            'update_images', 'update_cropped_images', 'update_face_images', 'update_embeddings_deepface',
            'update_embeddings_qmagface', 'update_embeddings_arcface', 'update_quality_images', 'update_ser_fiq',
-           'update_tface']
+           'update_ser_fiq_old', 'update_tface']
 
 # %% ../nbs/02_alchemy.ipynb 4
 import os
@@ -211,6 +211,7 @@ def create_face_images(session):
 
 # %% ../nbs/02_alchemy.ipynb 20
 def create_quality_images(session):
+     
     all_quality_models = (session.query(QualityModel).all())
     
     for qua in tqdm(all_quality_models, desc='Quality models'):
@@ -639,13 +640,12 @@ def update_embeddings_deepface(session, input_dir:str, force_update: bool = Fals
 
 # %% ../nbs/02_alchemy.ipynb 40
 def update_embeddings_qmagface(session, input_dir:str, force_update: bool = False, serfiq = None):
-    #todo: removed mediapipe to save time. Put it back.
+    
     query = session.query(FaceImage,CroppedImage) \
         .join(EmbeddingModel) \
         .filter(EmbeddingModel.name == 'QMagFace') \
         .join(CroppedImage,CroppedImage.croppedImage_id == FaceImage.croppedImage_id) \
-        .join(Detector)\
-        .filter(Detector.name != 'mediapipe')
+        .join(Detector)
 
     if not force_update:
         query = query.filter(FaceImage.embeddings == None)
@@ -657,9 +657,13 @@ def update_embeddings_qmagface(session, input_dir:str, force_update: bool = Fals
     count = 0
 
     for face_img in tqdm(all_face_img, desc='Computing embeddings QMagFace'):
+        
         img = face_img.CroppedImage.get_aligned_image(input_dir, ser_fiq = serfiq)
+        
         embedding = compute_qmagface_embeddings(img, model)
         face_img.FaceImage.embeddings = embedding
+            
+
         updated_face_images.append({"faceImage_id": face_img.FaceImage.faceImage_id, "embeddings": face_img.FaceImage.embeddings})
         count += 1
         if count % 100 == 0:
@@ -680,14 +684,14 @@ def update_embeddings_qmagface(session, input_dir:str, force_update: bool = Fals
 
 # %% ../nbs/02_alchemy.ipynb 42
 def update_embeddings_arcface(session, input_dir:str, force_update: bool = False, serfiq = None):
-    #todo: removed mediapipe, add later.
+    
     # General case
     query = session.query(FaceImage, Detector, Image) \
         .join(EmbeddingModel) \
         .join(CroppedImage,CroppedImage.croppedImage_id == FaceImage.croppedImage_id) \
         .join(Detector) \
         .join(Image, Image.image_id ==CroppedImage.image_id) \
-        .filter(EmbeddingModel.name == 'ArcFace_normalized', Detector.name != 'mtcnn_serfiq', Detector.name != 'mediapipe')
+        .filter(EmbeddingModel.name == 'ArcFace_normalized', Detector.name != 'mtcnn_serfiq')
 
     if not force_update:
         query = query.filter(FaceImage.embeddings == None)
@@ -761,7 +765,100 @@ def update_quality_images(session, input_dir, serfiq=None, force_update: bool = 
     update_tface(session, input_dir,  serfiq = serfiq, force_update=force_update)         
 
 # %% ../nbs/02_alchemy.ipynb 44
-def update_ser_fiq(session, input_dir, serfiq = None, force_update: bool = False):
+def update_ser_fiq(session, input_dir, serfiq=None, force_update: bool = False):
+    query = session.query(QualityImage, CroppedImage) \
+        .join(QualityModel) \
+        .join(FaceImage, FaceImage.faceImage_id == QualityImage.faceImage_id) \
+        .join(EmbeddingModel) \
+        .join(CroppedImage, CroppedImage.croppedImage_id == FaceImage.croppedImage_id) \
+        .join(Detector) \
+        .filter(EmbeddingModel.name == 'QMagFace',
+                QualityModel.name == 'ser_fiq'
+                )
+
+    if not force_update:
+        query = query.filter(QualityImage.quality == None)
+    all_rows = query.all()
+
+    updated_quality_images = []
+    count = 0
+
+    for row in tqdm(all_rows, desc='Computing SER-FIQ quality'):
+        aligned_img = row.CroppedImage.get_aligned_image(input_dir, ser_fiq=serfiq)
+
+        if aligned_img is None:
+            quality = None
+            row.QualityImage.quality = quality
+        else:
+            quality = serfiq.get_score(aligned_img, T=100)
+            row.QualityImage.quality = quality
+
+        updated_quality_images.append({"qualityImage_id": row.QualityImage.qualityImage_id, "quality": row.QualityImage.quality})
+        count += 1
+
+        if count % 100 == 0:
+            try:
+                session.bulk_update_mappings(QualityImage, updated_quality_images)
+                session.commit()
+                updated_quality_images = []
+            except:
+                session.rollback()
+                raise Exception("Error updating SER-FIQ quality for QualityImages in the database")
+
+    if updated_quality_images:
+        try:
+            session.bulk_update_mappings(QualityImage, updated_quality_images)
+            session.commit()
+        except:
+            session.rollback()
+            raise Exception("Error updating SER-FIQ quality for QualityImages in the database")
+
+
+# %% ../nbs/02_alchemy.ipynb 45
+def update_ser_fiq_old(session, input_dir, serfiq=None, force_update: bool = False):
+    query = session.query(QualityImage, CroppedImage) \
+        .join(QualityModel) \
+        .join(FaceImage, FaceImage.faceImage_id == QualityImage.faceImage_id) \
+        .join(EmbeddingModel) \
+        .join(CroppedImage, CroppedImage.croppedImage_id == FaceImage.croppedImage_id) \
+        .filter(EmbeddingModel.name == 'QMagFace',
+                QualityModel.name == 'ser_fiq')
+
+    if not force_update:
+        query = query.filter(QualityImage.quality == None)
+    all_rows = query.all()
+
+    updated_quality_images = []
+    count = 0
+
+    for row in tqdm(all_rows, desc='Computing SER-FIQ quality'):
+        aligned_img = row.CroppedImage.get_aligned_image(input_dir, ser_fiq=serfiq)
+        quality = serfiq.get_score(aligned_img, T=100)
+
+        row.QualityImage.quality = quality
+        updated_quality_images.append({"qualityImage_id": row.QualityImage.qualityImage_id, "quality": row.QualityImage.quality})
+        count += 1
+
+        if count % 100 == 0:
+            try:
+                session.bulk_update_mappings(QualityImage, updated_quality_images)
+                session.commit()
+                updated_quality_images = []
+            except:
+                session.rollback()
+                raise Exception("Error updating SER-FIQ quality for QualityImages in the database")
+
+    if updated_quality_images:
+        try:
+            session.bulk_update_mappings(QualityImage, updated_quality_images)
+            session.commit()
+        except:
+            session.rollback()
+            raise Exception("Error updating SER-FIQ quality for QualityImages in the database")
+
+
+# %% ../nbs/02_alchemy.ipynb 46
+def update_ser_fiq_old(session, input_dir, serfiq = None, force_update: bool = False):
     
     # todo: Now it is only for ArcFace, it should be expanded to other embedding models.
     query = session.query(QualityImage, CroppedImage) \
@@ -787,13 +884,13 @@ def update_ser_fiq(session, input_dir, serfiq = None, force_update: bool = False
         row.QualityImage.quality = quality
         session.commit()
 
-# %% ../nbs/02_alchemy.ipynb 45
+# %% ../nbs/02_alchemy.ipynb 47
 def update_tface(session, input_dir, serfiq, force_update: bool = False):
     ser_fiq = serfiq
 
     net, gpu_available = get_network()
 
-    # todo: Now it is only for ArcFace, it should be expanded to other embedding models. 
+    # todo: Now it is only for QMagFace, it should be expanded to other embedding models. 
     # Is it ArcFace or another face recognition model?
     
     query = session.query(QualityImage, CroppedImage) \
@@ -801,7 +898,7 @@ def update_tface(session, input_dir, serfiq, force_update: bool = False):
         .join(FaceImage, FaceImage.faceImage_id == QualityImage.faceImage_id) \
         .join(EmbeddingModel) \
         .join(CroppedImage, CroppedImage.croppedImage_id == FaceImage.croppedImage_id) \
-        .filter(EmbeddingModel.name == 'ArcFace', 
+        .filter(EmbeddingModel.name == 'QMagFace', 
                 QualityModel.name == 'tface')
         # .join(Image, Image.image_id == CroppedImage.image_id) 
         
