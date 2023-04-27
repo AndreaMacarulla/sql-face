@@ -211,12 +211,13 @@ class Image(Base):
         return category_values 
     
     def get_qi_category(self, session, qi_cat_list, detector, embedding_model,quality_model):
-        ci,fi,qimage = (session.query(CroppedImage, FaceImage, QualityImage) 
-                        .join(FaceImage)
-                        .join(QualityImage)                      
-                        .join(Detector)
-                        .join(EmbeddingModel)
+        q_f = (session.query(QualityImage, FaceImage ) 
                         .join(QualityModel)
+                        .join(FaceImage)
+                        .join(EmbeddingModel)
+                        .join(CroppedImage)                                             
+                        .join(Detector)                      
+                        
                         .filter(CroppedImage.image_id == self.image_id,
                                 CroppedImage.face_detected == True,
                                 Detector.name == detector,
@@ -227,8 +228,8 @@ class Image(Base):
                                                               
                             
                                 
-        if qimage:
-            category_values = [qimage[0].__dict__[category] for category in qi_cat_list]
+        if q_f:
+            category_values = [q_f[0].__dict__[category] for category in qi_cat_list]
         else:
             category_values = [None for _ in qi_cat_list]
         return category_values 
