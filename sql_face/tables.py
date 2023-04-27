@@ -155,28 +155,83 @@ class Image(Base):
         abs_path = os.path.join(input_dir, self.path)
         return cv2.imread(abs_path)
 
-    def get_category(self, im_category_list, fi_cat_list, detector, embedding_model):
-        # todo: clean some day.
-        return tuple(
-            self.get_im_category(im_category_list) )
-            # + self.get_fi_category(fi_cat_list, detector, embedding_model))
+    #def get_category(self, im_category_list, fi_cat_list, detector, embedding_model):
+    def get_category(self, session, filters, detector, embedding_model,quality_model):
+        tot_cat = []
+        if filters['image']:
+            tot_cat += self.get_im_category(filters['image']) 
+        if filters['face_image']:
+            tot_cat += self.get_fi_category(session, filters['face_image'], detector, embedding_model)
+        if filters['quality_image']:
+            tot_cat += self.get_qi_category(session, filters['quality_image'], detector, embedding_model, quality_model)
+        
+        return tuple(tot_cat)
 
-    def get_im_category(self, im_category_list):
-        category_values = [self.__dict__[category] for category in im_category_list]
+    def get_im_category(self, im_cat_list):
+        category_values = [self.__dict__[category] for category in im_cat_list]
         return category_values
 
-    def get_fi_category(self, fi_cat_list, detector, embedding_model):
+    def get_fi_category(self, session, fi_cat_list, detector, embedding_model):
         # todo: if more face image categories are added, change function.
-        confusion_score = [face_image.confusion_score for cropped_image in self.croppedImages if
-                           cropped_image.detectors.name == detector
-                           for face_image in cropped_image.faceImages if
-                           face_image.embeddingModels.name == embedding_model]
-        assert len(confusion_score) <= 1
-        if len(confusion_score) == 0:
-            return None
-        if not fi_cat_list:
-            return []
-        return confusion_score  # list as it were several categories.
+
+        fimage = (session.query(FaceImage)
+                                 .join(CroppedImage)
+                                 .join(Detector)
+                                 .join(EmbeddingModel)
+                                 .filter(CroppedImage.image_id == self.image_id,
+                                         CroppedImage.face_detected == True,
+                                         Detector.name == detector,
+                                         EmbeddingModel.name == embedding_model)
+                                 .one_or_none())
+        if fimage:
+            category_values = [fimage.__dict__[category] for category in fi_cat_list]
+        else:
+            category_values = [None for _ in fi_cat_list]
+
+        return category_values 
+    
+    def get_qi_category(self, session, qi_cat_list, detector, embedding_model,quality_model):
+        qimage = (session.query(QualityImage)
+                                .join(QualityModel)
+                                .join(FaceImage)
+                                .join(EmbeddingModel)
+                                .join(CroppedImage)
+                                .join(Detector)
+                                
+                                .filter(CroppedImage.image_id == self.image_id,
+                                         CroppedImage.face_detected == True,
+                                         Detector.name == detector,
+                                         EmbeddingModel.name == embedding_model,
+                                         QualityModel.name == quality_model)
+                                .one_or_none())
+        if qimage:
+            category_values = [qimage.__dict__[category] for category in qi_cat_list]
+        else:
+            category_values = [None for _ in qi_cat_list]
+        return category_values 
+    
+    def get_qi_category_test(self, session, qi_cat_list, detector, embedding_model,quality_model):
+        ci,fi,qimage = (session.query(CroppedImage, FaceImage, QualityImage)
+                  .join(Detector)
+                  .join(EmbeddingModel)
+                  .join(QualityModel)
+                  .filter(CroppedImage.image_id == self.image_id,
+                          FaceImage.croppedImage_id == CroppedImage.croppedImage_id,
+                          QualityImage.faceImage_id == FaceImage.faceImage_id,
+                          CroppedImage.face_detected == True,
+                          Detector.name == detector,
+                          EmbeddingModel.name == embedding_model,
+                          QualityModel.name == quality_model,
+                          )
+                  .one_or_none())                            
+                                                              
+                            
+                                
+        if qimage:
+            category_values = [qimage[0].__dict__[category] for category in qi_cat_list]
+        else:
+            category_values = [None for _ in qi_cat_list]
+        return category_values 
 
 
 # %% ../nbs/03_tables.ipynb 10
@@ -393,7 +448,7 @@ class CroppedImage(Base):
     __tablename__ = 'croppedImage'
     croppedImage_id = Column(Integer, primary_key=True)
 
-    image_id = Column(Integer, ForeignKey('image.image_id'))
+    image_id = Column(Integer, ForeignKey('image.image_id',ondelete = 'CASCADE'), index = True)
     detector_id = Column(Integer, ForeignKey('detector.detector_id'))
 
     bounding_box = Column(PickleType)
@@ -443,7 +498,7 @@ class FaceImage(Base):
     __tablename__ = 'faceImage'
     faceImage_id = Column(Integer, primary_key=True)
 
-    croppedImage_id = Column(Integer, ForeignKey('croppedImage.croppedImage_id'))
+    croppedImage_id = Column(Integer, ForeignKey('croppedImage.croppedImage_id', ondelete = 'CASCADE'), index = True)
     embeddingModel_id = Column(Integer, ForeignKey('embeddingModel.embeddingModel_id'))
 
     embeddings = Column(PickleType)
@@ -464,7 +519,7 @@ class QualityImage(Base):
     __tablename__ = 'qualityImage'
     qualityImage_id = Column(Integer, primary_key=True)
 
-    faceImage_id = Column(Integer, ForeignKey('faceImage.faceImage_id'))
+    faceImage_id = Column(Integer, ForeignKey('faceImage.faceImage_id', ondelete= 'CASCADE'), index = True)
     qualityModel_id = Column(Integer, ForeignKey('qualityModel.qualityModel_id'))
 
     quality = Column(Float)
