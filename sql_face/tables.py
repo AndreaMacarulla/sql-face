@@ -190,7 +190,7 @@ class Image(Base):
 
         return category_values 
     
-    def get_qi_category(self, session, qi_cat_list, detector, embedding_model,quality_model):
+    def get_qi_category_good(self, session, qi_cat_list, detector, embedding_model,quality_model):
         qimage = (session.query(QualityImage)
                                 .join(QualityModel)
                                 .join(FaceImage)
@@ -210,18 +210,18 @@ class Image(Base):
             category_values = [None for _ in qi_cat_list]
         return category_values 
     
-    def get_qi_category_test(self, session, qi_cat_list, detector, embedding_model,quality_model):
-        ci,fi,qimage = (session.query(CroppedImage, FaceImage, QualityImage)
-                  .join(Detector)
-                  .join(EmbeddingModel)
-                  .join(QualityModel)
-                  .filter(CroppedImage.image_id == self.image_id,
-                          FaceImage.croppedImage_id == CroppedImage.croppedImage_id,
-                          QualityImage.faceImage_id == FaceImage.faceImage_id,
-                          CroppedImage.face_detected == True,
-                          Detector.name == detector,
-                          EmbeddingModel.name == embedding_model,
-                          QualityModel.name == quality_model,
+    def get_qi_category(self, session, qi_cat_list, detector, embedding_model,quality_model):
+        ci,fi,qimage = (session.query(CroppedImage, FaceImage, QualityImage) 
+                        .join(FaceImage)
+                        .join(QualityImage)                      
+                        .join(Detector)
+                        .join(EmbeddingModel)
+                        .join(QualityModel)
+                        .filter(CroppedImage.image_id == self.image_id,
+                                CroppedImage.face_detected == True,
+                                Detector.name == detector,
+                                EmbeddingModel.name == embedding_model,
+                                QualityModel.name == quality_model,
                           )
                   .one_or_none())                            
                                                               
