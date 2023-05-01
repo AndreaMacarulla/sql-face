@@ -157,4 +157,6 @@ assign_angles.ipynb
 face_parser.py
 parse_scface.py
 save_image_quality.ipynb
+test_categories.ipynb
+
 
