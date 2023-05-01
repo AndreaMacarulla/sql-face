@@ -160,6 +160,12 @@ class Image(Base):
         tot_cat = []
         if filters['image']:
             tot_cat += self.get_im_category(filters['image']) 
+
+        '''
+        if filters['face_image'] or filters['quality_image']:
+            tot_cat += self.get_fq_category(session, filters, detector, embedding_model, quality_model)
+        '''
+
         if filters['face_image']:
             tot_cat += self.get_fi_category(session, filters['face_image'], detector, embedding_model)
         if filters['quality_image']:
@@ -171,8 +177,7 @@ class Image(Base):
         category_values = [self.__dict__[category] for category in im_cat_list]
         return category_values
 
-    def get_fi_category(self, session, fi_cat_list, detector, embedding_model):
-        # todo: if more face image categories are added, change function.
+    def get_fi_category(self, session, fi_cat_list, detector, embedding_model):        
 
         fimage = (session.query(FaceImage)
                                  .join(CroppedImage)
@@ -190,7 +195,7 @@ class Image(Base):
 
         return category_values 
     
-    def get_qi_category_good(self, session, qi_cat_list, detector, embedding_model,quality_model):
+    def get_qi_category(self, session, qi_cat_list, detector, embedding_model,quality_model):
         qimage = (session.query(QualityImage)
                                 .join(QualityModel)
                                 .join(FaceImage)
@@ -210,7 +215,9 @@ class Image(Base):
             category_values = [None for _ in qi_cat_list]
         return category_values 
     
-    def get_qi_category(self, session, qi_cat_list, detector, embedding_model,quality_model):
+    '''
+    def get_fq_category(self, session, filters, detector, embedding_model,quality_model):
+        # esta funcion obtiene con solo una query las categorías de face_image y quality_image.
         q_f = (session.query(QualityImage, FaceImage ) 
                         .join(QualityModel)
                         .join(FaceImage)
@@ -224,16 +231,18 @@ class Image(Base):
                                 EmbeddingModel.name == embedding_model,
                                 QualityModel.name == quality_model,
                           )
-                  .one_or_none())                            
+                  .one_or_none())                    
                                                               
                             
                                 
         if q_f:
-            category_values = [q_f[0].__dict__[category] for category in qi_cat_list]
+            f_values = [q_f[1].__dict__[category] for category in filters['face_image']]
+            q_values = [q_f[0].__dict__[category] for category in filters['quality_image']]
         else:
-            category_values = [None for _ in qi_cat_list]
-        return category_values 
-
+            f_values = [None for category in filters['face_image']]
+            q_values = [None for category in filters['quality_image']]
+        return f_values + q_values 
+'''
 
 # %% ../nbs/03_tables.ipynb 10
 @declarative_mixin
@@ -345,17 +354,16 @@ class Pair:
                 n += 1
         return n
 
-        
-
-    def get_category(self, im_category_list, fi_cat_list, detector, embedding_model):
-        return tuple((self.first.get_category(im_category_list, fi_cat_list, detector, embedding_model),
-                      self.second.get_category(im_category_list, fi_cat_list, detector, embedding_model)))
+    def get_category(self, session, filters, detector, embedding_model,quality_model):
+        return tuple((self.first.get_category(session,filters, detector, embedding_model, quality_model),
+                      self.second.get_category(session, filters, detector, embedding_model, quality_model)))
 
     def is_valid(self, detector: str):
         return self.first.is_valid(detector=detector) and self.second.is_valid(detector=detector)
 
-    def pair_category_str(self, category_list):
-        pair_category = ';'.join(self.get_category(self, category_list))
+    #def pair_category_str(self, category_list):
+    def pair_category_str(self,session, filters, detector, embedding_model,quality_model):
+        pair_category = ';'.join(self.get_category(session, filters, detector, embedding_model,quality_model))
         return f'({pair_category})'
 
     def make_cropped_pair(self, detector):
