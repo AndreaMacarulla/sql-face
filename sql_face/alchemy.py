@@ -50,7 +50,7 @@ def get_session(
 
 # %% ../nbs/02_alchemy.ipynb 8
 def create_objects(session, model_class, names):
-    existing_objects = {obj_name for obj_name in session.query(model_class.name).all()}
+    existing_objects = {name for (name,)  in session.query(model_class.name).all()}
     new_objects = [model_class(name=name) for name in names if name not in existing_objects]
     session.bulk_save_objects(new_objects)
     session.commit()
