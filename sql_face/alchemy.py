@@ -2,11 +2,11 @@
 
 # %% auto 0
 __all__ = ['get_session', 'create_objects', 'create_detectors', 'create_embedding_models', 'create_quality_models',
-           'fill_cropped_image_serfiq', 'fill_cropped_image_general', 'create_cropped_images', 'create_face_images',
-           'create_quality_images', 'update_gender', 'update_age', 'update_emotion', 'update_race', 'update_angles',
-           'update_pose', 'update_images', 'update_cropped_images', 'update_face_images', 'update_embeddings_deepface',
-           'update_embeddings_qmagface', 'update_embeddings_arcface', 'update_quality_images', 'update_ser_fiq',
-           'update_ser_fiq_old', 'update_tface']
+           'fill_cropped_image_serfiq', 'fill_cropped_image_general', 'commit_objects', 'create_cropped_images',
+           'create_face_images', 'create_quality_images', 'commit_updates', 'update_gender', 'update_age',
+           'update_emotion', 'update_race', 'update_angles', 'update_pose', 'update_images', 'update_cropped_images',
+           'update_face_images', 'update_embeddings_deepface', 'update_embeddings_qmagface',
+           'update_embeddings_arcface', 'update_quality_images', 'update_ser_fiq', 'update_ser_fiq_old', 'update_tface']
 
 # %% ../nbs/02_alchemy.ipynb 4
 import os
@@ -48,33 +48,33 @@ def get_session(
     session = Session()
     return session
 
-# %% ../nbs/02_alchemy.ipynb 8
+# %% ../nbs/02_alchemy.ipynb 9
 def create_objects(session, model_class, names):
     existing_objects = {name for (name,)  in session.query(model_class.name).all()}
     new_objects = [model_class(name=name) for name in names if name not in existing_objects]
     session.bulk_save_objects(new_objects)
     session.commit()
 
-# %% ../nbs/02_alchemy.ipynb 9
+# %% ../nbs/02_alchemy.ipynb 10
 def create_detectors(session, #SQL alchemy session object
                     detector_names: List[str] # List of detectors to add to the database.
                     ):
 
     create_objects(session, Detector, detector_names)
 
-# %% ../nbs/02_alchemy.ipynb 10
+# %% ../nbs/02_alchemy.ipynb 11
 def create_embedding_models(session, #SQL alchemy session object
                             embedding_model_names: List[str]): # List of detectors to add to the database.
                             
     create_objects(session, EmbeddingModel, embedding_model_names)
 
-# %% ../nbs/02_alchemy.ipynb 11
+# %% ../nbs/02_alchemy.ipynb 12
 def create_quality_models(session, #SQL alchemy session object
                         quality_model_names: List[str]): # List of quality models to add to the database.
     
     create_objects(session, QualityModel, quality_model_names)
 
-# %% ../nbs/02_alchemy.ipynb 12
+# %% ../nbs/02_alchemy.ipynb 14
 def fill_cropped_image_serfiq(cr_img: CroppedImage, # CroppedImage object to be filled with bounding box and landmarks information.
                                 input_dir, # Directory where the images are stored.
                                 ser_fiq): #SERFIQ model object.
@@ -95,7 +95,7 @@ def fill_cropped_image_serfiq(cr_img: CroppedImage, # CroppedImage object to be 
             cr_img.landmarks = points[0].tolist()
             cr_img.face_detected = True
 
-# %% ../nbs/02_alchemy.ipynb 13
+# %% ../nbs/02_alchemy.ipynb 15
 def fill_cropped_image_general(cr_img: CroppedImage, input_dir, **kwargs):
     image = cr_img.images.get_image(input_dir)      
     
@@ -116,116 +116,78 @@ def fill_cropped_image_general(cr_img: CroppedImage, input_dir, **kwargs):
 
 
 
-# %% ../nbs/02_alchemy.ipynb 14
-def create_cropped_images(session, input_dir:str, serfiq = None):
-        
-        all_detectors = (session.query(Detector).all())
-        for det in all_detectors:
+# %% ../nbs/02_alchemy.ipynb 16
+def commit_objects(objects, session):
+    if objects:
+        session.bulk_save_objects(objects)
+        try:
+            session.commit()
+        except IntegrityError:
+            session.rollback()
+            raise IntegrityError("Could not commit the objects")
+        objects = []
+    return objects
 
-            # Load SERFIQ model if neccesary
-            if det.name == 'mtcnn_serfiq':
-                
-                fill_cropped_image = fill_cropped_image_serfiq
-            else:
-                
-                fill_cropped_image = fill_cropped_image_general
+# %% ../nbs/02_alchemy.ipynb 17
+def create_cropped_images(session, input_dir:str, serfiq=None):
+    all_detectors = session.query(Detector).all()
 
-            subquery = session.query(CroppedImage.image_id) \
-                .filter(CroppedImage.detectors == det)
-            images = (
-                session.query(Image)
-                    .filter(Image.image_id.notin_(subquery))
-                    .all()
-            )
+    for det in all_detectors:
+        if det.name == 'mtcnn_serfiq':
+            fill_cropped_image = fill_cropped_image_serfiq
+        else:
+            fill_cropped_image = fill_cropped_image_general
 
-            cropped_images = []
-            count = 0
-            for img in tqdm(images, desc=f'Creating CroppedImages for detector {det.name}'):
-               
-                cropped_image = CroppedImage()
-                cropped_image.image_id = img.image_id
-                cropped_image.detector_id = det.detector_id
-                cropped_image.images = img
-                cropped_image.detectors = det
-                fill_cropped_image(cropped_image, input_dir, ser_fiq = serfiq)
-                cropped_images.append(cropped_image)
-                count += 1
+        subquery = session.query(CroppedImage.image_id).filter(CroppedImage.detectors == det)
+        images = session.query(Image).filter(Image.image_id.notin_(subquery)).all()
 
-
-                if count % 100 == 0:
-                    session.bulk_save_objects(cropped_images)
-                    try:
-                        session.commit()
-                    except IntegrityError:
-                        session.rollback()
-                        raise IntegrityError("Could not commit CroppedImages")
-                    cropped_images = []
-                    
-
-            if cropped_images:          
-                session.bulk_save_objects(cropped_images)
-                try:
-                    session.commit()
-                except IntegrityError:
-                    session.rollback()
-                    raise IntegrityError("Could not commit CroppedImages")
-
-# %% ../nbs/02_alchemy.ipynb 15
-def create_face_images(session):
-    all_embedding_models = (session.query(EmbeddingModel).all())
-    for emb in tqdm(all_embedding_models, desc='Embedding models'):
-        subquery = session.query(FaceImage.croppedImage_id) \
-            .filter(FaceImage.embeddingModels == emb)
-        cropped_images = (
-            session.query(CroppedImage) \
-                .filter(CroppedImage.croppedImage_id.notin_(subquery),
-                        CroppedImage.face_detected == True)
-                .all()
-        )
+        cropped_images = []
         count = 0
+        for img in tqdm(images, desc=f'Creating CroppedImages for detector {det.name}'):
+            cropped_image = CroppedImage()
+            cropped_image.image_id = img.image_id
+            cropped_image.detector_id = det.detector_id
+            cropped_image.images = img
+            cropped_image.detectors = det
+            fill_cropped_image(cropped_image, input_dir, ser_fiq=serfiq)
+            cropped_images.append(cropped_image)
+            count += 1
+
+            if count % 100 == 0:
+                cropped_images = commit_objects(cropped_images, session)
+
+        cropped_images = commit_objects(cropped_images, session)
+
+
+# %% ../nbs/02_alchemy.ipynb 18
+def create_face_images(session):
+    all_embedding_models = session.query(EmbeddingModel).all()
+    for emb in tqdm(all_embedding_models, desc='Embedding models'):
+        subquery = session.query(FaceImage.croppedImage_id).filter(FaceImage.embeddingModels == emb)
+        cropped_images = session.query(CroppedImage).filter(CroppedImage.croppedImage_id.notin_(subquery), 
+                                                            CroppedImage.face_detected == True).all()
+
         face_images_to_add = []
+        count = 0
         for cr_img in tqdm(cropped_images, desc=f'Face images in {emb.name}'):
             face_image = FaceImage(croppedImage_id=cr_img.croppedImage_id, embeddingModel_id=emb.embeddingModel_id)
             face_images_to_add.append(face_image)
             count += 1
             if count % 100 == 0:
-                session.bulk_save_objects(face_images_to_add)
-                session.commit()
-                face_images_to_add = []
+                face_images_to_add = commit_objects(face_images_to_add, session)
 
-            if count % 100 == 0:
-                session.bulk_save_objects(face_images_to_add)
-                try:
-                    session.commit()
-                except IntegrityError:
-                    session.rollback()
-                    raise IntegrityError("Could not commit face images")
-                face_images_to_add = []
+        face_images_to_add = commit_objects(face_images_to_add, session)
 
-        if face_images_to_add:
-            session.bulk_save_objects(face_images_to_add)
-            try:
-                session.commit()
-            except IntegrityError:
-                session.rollback()
-                raise IntegrityError("Could not commit face images")
-
-# %% ../nbs/02_alchemy.ipynb 16
+# %% ../nbs/02_alchemy.ipynb 20
 def create_quality_images(session):
-     
-    all_quality_models = (session.query(QualityModel).all())
-    
-    for qua in tqdm(all_quality_models, desc='Quality models'):
-        subquery = session.query(QualityImage.faceImage_id) \
-            .filter(QualityImage.qualityModels == qua)
-        face_images = (
-            session.query(FaceImage) \
-                .filter(FaceImage.faceImage_id.notin_(subquery))
-                .all()
-        )
+    all_quality_models = session.query(QualityModel).all()
 
-        count = 0
+    for qua in tqdm(all_quality_models, desc='Quality models'):
+        subquery = session.query(QualityImage.faceImage_id).filter(QualityImage.qualityModels == qua)
+        face_images = session.query(FaceImage).filter(FaceImage.faceImage_id.notin_(subquery)).all()
+
         qua_images = []
+        count = 0
 
         for face_img in tqdm(face_images, desc=f'Quality images in {qua.name}'):
             qua_image = QualityImage()
@@ -236,28 +198,21 @@ def create_quality_images(session):
             qua_images.append(qua_image)
             count += 1
 
-
             if count % 100 == 0:
-                session.bulk_save_objects(qua_images)
-                try:
-                    session.commit()
-                except IntegrityError:
-                    session.rollback()
-                    raise IntegrityError("Could not commit quality images")
-                qua_images = []
+                qua_images = commit_objects(qua_images, session)
 
+        qua_images = commit_objects(qua_images, session)
 
-    if qua_images:
-        session.bulk_save_objects(qua_images)
-        try:
-            session.commit()
-        except IntegrityError:
-            session.rollback()
-            raise IntegrityError("Could not commit quality images")
+# %% ../nbs/02_alchemy.ipynb 23
+def commit_updates(session, updated_objects, model_class):
+    if updated_objects:
+        session.bulk_update_mappings(model_class, updated_objects)
+        session.flush()
+        session.commit()
+        updated_objects.clear()
 
-# %% ../nbs/02_alchemy.ipynb 18
-def update_gender(session, input_dir:str, databases:List[FaceDataBase], force_update: bool = False):
-
+# %% ../nbs/02_alchemy.ipynb 25
+def update_gender(session, input_dir: str, databases: List[FaceDataBase], force_update: bool = False):
     for db in databases:
         query = session.query(Image).filter(Image.source == db.source)
         if not force_update:
@@ -267,30 +222,27 @@ def update_gender(session, input_dir:str, databases:List[FaceDataBase], force_up
         updated_images = []
         count = 0
 
-        # for img in tqdm(all_img[:10], desc='TRIM Update gender'):
         for img in tqdm(all_img, desc='Update gender'):
 
             try:
-                filters = DeepFace.analyze(img_path=img.get_image(input_dir), actions=['gender'], enforce_detection=True, detector_backend = 'mediapipe') # detector_backend = 'mediapipe'
+                filters = DeepFace.analyze(img_path=img.get_image(input_dir), actions=['gender'],
+                                           enforce_detection=True, detector_backend='mediapipe')
                 img.gender = Gender(filters["gender"])
-                
+
             except ValueError:
                 img.gender = None
 
             updated_images.append({"image_id": img.image_id, "gender": img.gender})
-            
+
             count += 1
             if count % 100 == 0:
-                session.bulk_update_mappings(Image, updated_images)
-                session.commit()
-                updated_images = []
-        if updated_images:
-            session.bulk_update_mappings(Image, updated_images)
-            session.flush()
-        session.commit()
+                commit_updates(session, updated_images, Image)
 
-# %% ../nbs/02_alchemy.ipynb 19
-def update_age(session, input_dir:str, databases:List[FaceDataBase],force_update: bool = False):
+        commit_updates(session, updated_images, Image)
+
+
+# %% ../nbs/02_alchemy.ipynb 27
+def update_age(session, input_dir: str, databases: List[FaceDataBase], force_update: bool = False):
     for db in databases:
         query = session.query(Image).filter(Image.source == db.source)
         if not force_update:
@@ -302,38 +254,26 @@ def update_age(session, input_dir:str, databases:List[FaceDataBase],force_update
 
         for img in tqdm(all_img, desc='Update age'):
             try:
-                filters = DeepFace.analyze(img_path=img.get_image(input_dir), actions=['age'], enforce_detection=True, detector_backend = 'mediapipe')
+                filters = DeepFace.analyze(img_path=img.get_image(input_dir), actions=['age'],
+                                           enforce_detection=True, detector_backend='mediapipe')
                 age = filters["age"]
                 img.age_number = age
                 img.age = Age.age2enum(age)
 
-                
             except ValueError:
                 img.age = None
                 img.age_number = None
-                
-                
 
             updated_images.append({"image_id": img.image_id, "age_number": img.age_number, "age": img.age})
-            
+
             count += 1
-
             if count % 100 == 0:
-                session.bulk_update_mappings(Image, updated_images)
-                session.flush()
-                session.commit()
-                updated_images = []
+                commit_updates(session, updated_images, Image)
 
-        if updated_images:
-            session.bulk_update_mappings(Image, updated_images)
-            session.flush()
-        session.commit()
+        commit_updates(session, updated_images, Image)
 
-
-
-# %% ../nbs/02_alchemy.ipynb 20
-def update_emotion(session, input_dir:str, databases:List[FaceDataBase],force_update: bool = False):
-
+# %% ../nbs/02_alchemy.ipynb 29
+def update_emotion(session, input_dir: str, databases: List[FaceDataBase], force_update: bool = False):
     for db in databases:
         query = session.query(Image).filter(Image.source == db.source)
         if not force_update:
@@ -346,7 +286,8 @@ def update_emotion(session, input_dir:str, databases:List[FaceDataBase],force_up
         for img in tqdm(all_img, desc='Update facial expression (emotion)'):
 
             try:
-                filters = DeepFace.analyze(img_path=img.get_image(input_dir), actions=['emotion'], enforce_detection=True, detector_backend = 'mediapipe')
+                filters = DeepFace.analyze(img_path=img.get_image(input_dir), actions=['emotion'],
+                                           enforce_detection=True, detector_backend='mediapipe')
                 emotions = filters["emotion"]
                 prime_emotion = max(emotions, key=emotions.get)
                 img.emotion = Emotion(prime_emotion)
@@ -354,23 +295,16 @@ def update_emotion(session, input_dir:str, databases:List[FaceDataBase],force_up
                 img.emotion = None
 
             updated_images.append({"image_id": img.image_id, "emotion": img.emotion})
-            
+
             count += 1
             if count % 100 == 0:
-                session.bulk_update_mappings(Image, updated_images)
-                session.flush()
-                session.commit()
-                updated_images = []
-        if updated_images:
-            session.bulk_update_mappings(Image, updated_images)
-            session.flush()
-        session.commit()
+                commit_updates(session, updated_images, Image)
 
+        commit_updates(session, updated_images, Image)
 
-# %% ../nbs/02_alchemy.ipynb 21
-def update_race(session, input_dir:str, databases:List[FaceDataBase], force_update: bool = False):
-    
-    for db in databases:
+# %% ../nbs/02_alchemy.ipynb 31
+def update_race(session, input_dir: str, databases: List[FaceDataBase], force_update: bool = False):
+     for db in databases:
         query = session.query(Image).filter(Image.source == db.source)
         if not force_update:
             query = query.filter(Image.race == None)
@@ -381,7 +315,8 @@ def update_race(session, input_dir:str, databases:List[FaceDataBase], force_upda
 
         for img in tqdm(all_img, desc='Update race'):
             try:
-                filters = DeepFace.analyze(img_path=img.get_image(input_dir), actions=['race'], enforce_detection=True, detector_backend = 'mtcnn')
+                filters = DeepFace.analyze(img_path=img.get_image(input_dir), actions=['race'],
+                                           enforce_detection=True, detector_backend='mediapipe')
                 races = filters["race"]
                 prime_race = max(races, key=races.get)
                 img.race = Race(prime_race)
@@ -391,115 +326,82 @@ def update_race(session, input_dir:str, databases:List[FaceDataBase], force_upda
             updated_images.append({"image_id": img.image_id, "race": img.race})
             count += 1
             if count % 100 == 0:
-                session.bulk_update_mappings(Image, updated_images)
-                session.flush()
-                session.commit()
-                updated_images = []
-        if updated_images:
-            session.bulk_update_mappings(Image, updated_images)
-            session.flush()
-        session.commit()
+                commit_updates(session, updated_images, Image)
 
-# %% ../nbs/02_alchemy.ipynb 22
+        commit_updates(session, updated_images, Image)
+
+# %% ../nbs/02_alchemy.ipynb 33
 def update_angles(session, input_dir: str, databases: List[FaceDataBase], force_update: bool = False):
-    
     for db in databases:
         query = session.query(Image).filter(Image.source == db.source)
-
         if not force_update:
             query = query.filter(or_(Image.angle_roll == None, Image.angle_yaw == None, Image.angle_pitch == None))
 
         all_images = query.all()
-
-        ncount = 100
+        count = 0
         updated_images = []
-        count = ncount
 
         for img in tqdm(all_images, desc='Update angles'):
-        
             img_array = img.get_image(input_dir)
             a_pitch, a_yaw, a_roll = compute_angles(img_array)
 
             upd_img = {}
             if a_roll:
                 upd_img['angle_roll'] = a_roll
-                    
             if a_yaw:
                 upd_img['angle_yaw'] = a_yaw
-                        
             if a_pitch:
                 upd_img['angle_pitch'] = a_pitch
-            
+
             if upd_img:
-                upd_img ['image_id'] =img.image_id
+                upd_img['image_id'] = img.image_id
                 updated_images.append(upd_img)
- 
-                count -= 1
 
-                if count == 0:
-                    session.bulk_update_mappings(Image, updated_images)
-                    session.flush() 
-                    session.commit()
-                    updated_images = []
-                    count = ncount
+                count += 1
+                if count % 100 == 0:
+                    commit_updates(session, updated_images, Image)
 
-        if updated_images:
-            session.bulk_update_mappings(Image, updated_images)
-            session.flush()
-        session.commit()
+        commit_updates(session, updated_images, Image)
 
-# %% ../nbs/02_alchemy.ipynb 23
+# %% ../nbs/02_alchemy.ipynb 35
 def update_pose(session, input_dir: str, databases: List[FaceDataBase], force_update: bool = False):
-    
     for db in databases:
         query = session.query(Image).filter(Image.source == db.source)
-
         if not force_update:
             query = query.filter(or_(Image.roll == None, Image.yaw == None, Image.pitch == None))
 
         all_images = query.all()
-
-        ncount = 100
+        count = 0
         updated_images = []
-        count = ncount
 
         for img in tqdm(all_images, desc='Update pose'):
-        
             angles = (img.angle_pitch, img.angle_yaw, img.angle_roll)
             pitch, yaw, roll = compute_pose(angles)
 
             upd_img = {}
             if roll:
                 if force_update or not img.roll:
-                    upd_img["roll"] = roll        
+                    upd_img["roll"] = roll
             if yaw:
                 if force_update or not img.yaw:
                     upd_img["yaw"] = yaw
-            
             if pitch:
                 if force_update or not img.pitch:
                     upd_img["pitch"] = pitch
 
             if upd_img:
-                upd_img ['image_id'] =img.image_id
-                updated_images.append(upd_img)      
+                upd_img['image_id'] = img.image_id
+                updated_images.append(upd_img)
+
+                count += 1
+                if count % 100 == 0:
+                    commit_updates(session, updated_images, Image)
+
+        commit_updates(session, updated_images, Image)
 
 
-                count -= 1
 
-                if count == 0:
-                    session.bulk_update_mappings(Image, updated_images)
-                    session.flush() 
-                    session.commit()
-                    updated_images = []
-                    count = ncount
-
-        if updated_images:
-            session.bulk_update_mappings(Image, updated_images)
-            session.flush()
-        session.commit()
-
-# %% ../nbs/02_alchemy.ipynb 24
+# %% ../nbs/02_alchemy.ipynb 37
 def update_images(session, input_dir,
                 databases:List[FaceDataBase], 
                 attributes: List[str], 
@@ -519,7 +421,7 @@ def update_images(session, input_dir,
         if attribute in update_functions:
             update_functions[attribute](session, input_dir, databases, force_update)
 
-# %% ../nbs/02_alchemy.ipynb 26
+# %% ../nbs/02_alchemy.ipynb 39
 def update_cropped_images(session, input_dir:str, force_update: bool = False, serfiq = None):
         
     query = session.query(CroppedImage).join(Detector)
@@ -556,14 +458,14 @@ def update_cropped_images(session, input_dir:str, force_update: bool = False, se
         session.commit()
 
 
-# %% ../nbs/02_alchemy.ipynb 27
+# %% ../nbs/02_alchemy.ipynb 40
 def update_face_images(session, input_dir:str, force_update: bool = False, serfiq = None):
     update_embeddings_deepface(session, input_dir, force_update, serfiq = serfiq)
     update_embeddings_qmagface(session, input_dir, force_update, serfiq = serfiq)
     update_embeddings_arcface(session, input_dir, force_update, serfiq = serfiq)
 # self.update_confusion_score(force_update)
 
-# %% ../nbs/02_alchemy.ipynb 28
+# %% ../nbs/02_alchemy.ipynb 41
 def update_embeddings_deepface(session, input_dir:str, force_update: bool = False, serfiq = None):
 
     # General case
@@ -639,7 +541,7 @@ def update_embeddings_deepface(session, input_dir:str, force_update: bool = Fals
             session.rollback()
             raise Exception("Error updating embeddings for FaceImages in the database")
 
-# %% ../nbs/02_alchemy.ipynb 29
+# %% ../nbs/02_alchemy.ipynb 42
 def update_embeddings_qmagface(session, input_dir:str, force_update: bool = False, serfiq = None):
     
     query = session.query(FaceImage,CroppedImage) \
@@ -683,7 +585,7 @@ def update_embeddings_qmagface(session, input_dir:str, force_update: bool = Fals
             session.rollback()
             raise Exception("Error updating embeddings for FaceImages in the database")
 
-# %% ../nbs/02_alchemy.ipynb 30
+# %% ../nbs/02_alchemy.ipynb 43
 def update_embeddings_arcface(session, input_dir:str, force_update: bool = False, serfiq = None):
     
     # General case
@@ -759,13 +661,13 @@ def update_embeddings_arcface(session, input_dir:str, force_update: bool = False
             session.rollback()
             raise Exception("Error updating embeddings for FaceImages in the database")
 
-# %% ../nbs/02_alchemy.ipynb 31
+# %% ../nbs/02_alchemy.ipynb 44
 def update_quality_images(session, input_dir, serfiq=None, force_update: bool = False):
     
     update_ser_fiq(session, input_dir, serfiq = serfiq, force_update=force_update)
     update_tface(session, input_dir,  serfiq = serfiq, force_update=force_update)         
 
-# %% ../nbs/02_alchemy.ipynb 32
+# %% ../nbs/02_alchemy.ipynb 45
 def update_ser_fiq(session, input_dir, serfiq=None, force_update: bool = False):
     query = session.query(QualityImage, CroppedImage) \
         .join(QualityModel) \
@@ -815,7 +717,7 @@ def update_ser_fiq(session, input_dir, serfiq=None, force_update: bool = False):
             raise Exception("Error updating SER-FIQ quality for QualityImages in the database")
 
 
-# %% ../nbs/02_alchemy.ipynb 33
+# %% ../nbs/02_alchemy.ipynb 46
 def update_ser_fiq_old(session, input_dir, serfiq=None, force_update: bool = False):
     query = session.query(QualityImage, CroppedImage) \
         .join(QualityModel) \
@@ -858,7 +760,7 @@ def update_ser_fiq_old(session, input_dir, serfiq=None, force_update: bool = Fal
             raise Exception("Error updating SER-FIQ quality for QualityImages in the database")
 
 
-# %% ../nbs/02_alchemy.ipynb 34
+# %% ../nbs/02_alchemy.ipynb 47
 def update_ser_fiq_old(session, input_dir, serfiq = None, force_update: bool = False):
     
     # todo: Now it is only for ArcFace, it should be expanded to other embedding models.
@@ -885,7 +787,7 @@ def update_ser_fiq_old(session, input_dir, serfiq = None, force_update: bool = F
         row.QualityImage.quality = quality
         session.commit()
 
-# %% ../nbs/02_alchemy.ipynb 35
+# %% ../nbs/02_alchemy.ipynb 48
 def update_tface(session, input_dir, serfiq, force_update: bool = False):
     ser_fiq = serfiq
 
