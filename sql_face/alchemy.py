@@ -167,7 +167,7 @@ def create_face_images(session):
         cropped_images = session.query(CroppedImage).filter(CroppedImage.croppedImage_id.notin_(subquery), 
                                                             CroppedImage.face_detected == True).all()
 
-        face_images_to_add = []
+        face_images_to_add = []                                                                       
         count = 0
         for cr_img in tqdm(cropped_images, desc=f'Face images in {emb.name}'):
             face_image = FaceImage(croppedImage_id=cr_img.croppedImage_id, embeddingModel_id=emb.embeddingModel_id)
@@ -178,7 +178,7 @@ def create_face_images(session):
 
         face_images_to_add = commit_objects(face_images_to_add, session)
 
-# %% ../nbs/02_alchemy.ipynb 20
+# %% ../nbs/02_alchemy.ipynb 19
 def create_quality_images(session):
     all_quality_models = session.query(QualityModel).all()
 
@@ -203,7 +203,7 @@ def create_quality_images(session):
 
         qua_images = commit_objects(qua_images, session)
 
-# %% ../nbs/02_alchemy.ipynb 23
+# %% ../nbs/02_alchemy.ipynb 21
 def commit_updates(session, updated_objects, model_class):
     if updated_objects:
         session.bulk_update_mappings(model_class, updated_objects)
@@ -211,7 +211,7 @@ def commit_updates(session, updated_objects, model_class):
         session.commit()
         updated_objects.clear()
 
-# %% ../nbs/02_alchemy.ipynb 25
+# %% ../nbs/02_alchemy.ipynb 23
 def update_gender(session, input_dir: str, databases: List[FaceDataBase], force_update: bool = False):
     for db in databases:
         query = session.query(Image).filter(Image.source == db.source)
@@ -241,7 +241,7 @@ def update_gender(session, input_dir: str, databases: List[FaceDataBase], force_
         commit_updates(session, updated_images, Image)
 
 
-# %% ../nbs/02_alchemy.ipynb 27
+# %% ../nbs/02_alchemy.ipynb 24
 def update_age(session, input_dir: str, databases: List[FaceDataBase], force_update: bool = False):
     for db in databases:
         query = session.query(Image).filter(Image.source == db.source)
@@ -272,7 +272,7 @@ def update_age(session, input_dir: str, databases: List[FaceDataBase], force_upd
 
         commit_updates(session, updated_images, Image)
 
-# %% ../nbs/02_alchemy.ipynb 29
+# %% ../nbs/02_alchemy.ipynb 25
 def update_emotion(session, input_dir: str, databases: List[FaceDataBase], force_update: bool = False):
     for db in databases:
         query = session.query(Image).filter(Image.source == db.source)
@@ -302,7 +302,7 @@ def update_emotion(session, input_dir: str, databases: List[FaceDataBase], force
 
         commit_updates(session, updated_images, Image)
 
-# %% ../nbs/02_alchemy.ipynb 31
+# %% ../nbs/02_alchemy.ipynb 26
 def update_race(session, input_dir: str, databases: List[FaceDataBase], force_update: bool = False):
      for db in databases:
         query = session.query(Image).filter(Image.source == db.source)
@@ -330,7 +330,7 @@ def update_race(session, input_dir: str, databases: List[FaceDataBase], force_up
 
         commit_updates(session, updated_images, Image)
 
-# %% ../nbs/02_alchemy.ipynb 33
+# %% ../nbs/02_alchemy.ipynb 27
 def update_angles(session, input_dir: str, databases: List[FaceDataBase], force_update: bool = False):
     for db in databases:
         query = session.query(Image).filter(Image.source == db.source)
@@ -363,7 +363,7 @@ def update_angles(session, input_dir: str, databases: List[FaceDataBase], force_
 
         commit_updates(session, updated_images, Image)
 
-# %% ../nbs/02_alchemy.ipynb 35
+# %% ../nbs/02_alchemy.ipynb 28
 def update_pose(session, input_dir: str, databases: List[FaceDataBase], force_update: bool = False):
     for db in databases:
         query = session.query(Image).filter(Image.source == db.source)
@@ -401,7 +401,7 @@ def update_pose(session, input_dir: str, databases: List[FaceDataBase], force_up
 
 
 
-# %% ../nbs/02_alchemy.ipynb 37
+# %% ../nbs/02_alchemy.ipynb 29
 def update_images(session, input_dir,
                 databases:List[FaceDataBase], 
                 attributes: List[str], 
@@ -421,7 +421,7 @@ def update_images(session, input_dir,
         if attribute in update_functions:
             update_functions[attribute](session, input_dir, databases, force_update)
 
-# %% ../nbs/02_alchemy.ipynb 39
+# %% ../nbs/02_alchemy.ipynb 31
 def update_cropped_images(session, input_dir: str, force_update: bool = False, serfiq=None):
     query = session.query(CroppedImage).join(Detector)
 
@@ -463,14 +463,14 @@ def update_cropped_images(session, input_dir: str, force_update: bool = False, s
     commit_updates(session, updated_images, CroppedImage)
 
 
-# %% ../nbs/02_alchemy.ipynb 42
+# %% ../nbs/02_alchemy.ipynb 33
 def update_face_images(session, input_dir:str, force_update: bool = False, serfiq = None):
     update_embeddings_deepface(session, input_dir, force_update, serfiq = serfiq)
     update_embeddings_qmagface(session, input_dir, force_update, serfiq = serfiq)
     update_embeddings_arcface(session, input_dir, force_update, serfiq = serfiq)
 # self.update_confusion_score(force_update)
 
-# %% ../nbs/02_alchemy.ipynb 43
+# %% ../nbs/02_alchemy.ipynb 34
 def update_embeddings_deepface(session, input_dir:str, force_update: bool = False, serfiq = None):
 
     # General case
@@ -525,63 +525,40 @@ def update_embeddings_deepface(session, input_dir:str, force_update: bool = Fals
     commit_updates(session, updated_face_images, FaceImage)
 
 
-# %% ../nbs/02_alchemy.ipynb 45
+# %% ../nbs/02_alchemy.ipynb 36
 def update_embeddings_qmagface(session, input_dir: str, force_update: bool = False, serfiq=None):
 
     # General case
-    query = session.query(FaceImage, EmbeddingModel, Detector, Image) \
+    query = session.query(FaceImage,CroppedImage) \
         .join(EmbeddingModel) \
-        .join(CroppedImage, CroppedImage.croppedImage_id == FaceImage.croppedImage_id) \
-        .join(Detector) \
-        .join(Image, Image.image_id == CroppedImage.image_id) \
-        .filter(EmbeddingModel.name == 'QMagFace', Detector.name != 'mtcnn_serfiq', Detector.name != 'mediapipe')
+        .filter(EmbeddingModel.name == 'QMagFace') \
+        .join(CroppedImage,CroppedImage.croppedImage_id == FaceImage.croppedImage_id) \
+        .join(Detector)
 
     if not force_update:
         query = query.filter(FaceImage.embeddings == None)
     all_face_img = (query.all())
 
+    model = load_model()
+
     updated_face_images = []
     count = 0
 
-    for face_img in tqdm(all_face_img, desc='Computing embeddings QMagFace general'):
-        embedding = DeepFace.represent(face_img.Image.get_image(input_dir), detector_backend=face_img.Detector.name,
-                                       model_name='QMagFace', enforce_detection=True)
+    for face_img in tqdm(all_face_img, desc='Computing embeddings QMagFace'):
+
+        img = face_img.CroppedImage.get_aligned_image(input_dir, ser_fiq = serfiq)
+        embedding = compute_qmagface_embeddings(img, model)
         face_img.FaceImage.embeddings = embedding
+
         updated_face_images.append({"faceImage_id": face_img.FaceImage.faceImage_id, "embeddings": face_img.FaceImage.embeddings})
+
         count += 1
         if count % 100 == 0:
             commit_updates(session, updated_face_images, FaceImage)
 
     commit_updates(session, updated_face_images, FaceImage)
 
-    # Mtcnn-serfiq
-    query = session.query(FaceImage, EmbeddingModel, CroppedImage) \
-        .join(EmbeddingModel) \
-        .join(CroppedImage, CroppedImage.croppedImage_id == FaceImage.croppedImage_id) \
-        .join(Detector) \
-        .filter(EmbeddingModel.name == 'QMagFace', Detector.name == 'mtcnn_serfiq', Detector.name != 'mediapipe')
-
-    if not force_update:
-        query = query.filter(FaceImage.embeddings == None)
-    all_face_img = (query.all())
-
-    updated_face_images = []
-    count = 0
-
-    for face_img in tqdm(all_face_img, desc='Computing embeddings QMagFace mtcnn-serfiq'):
-        embedding = DeepFace.represent(face_img.CroppedImage.get_aligned_image(input_dir, ser_fiq=serfiq), detector_backend='skip',
-                                       model_name='QMagFace', enforce_detection=False)
-        face_img.FaceImage.embeddings = embedding
-        updated_face_images.append({"faceImage_id": face_img.FaceImage.faceImage_id, "embeddings": face_img.FaceImage.embeddings})
-        count += 1
-        if count % 100 == 0:
-            commit_updates(session, updated_face_images, FaceImage)
-
-    commit_updates(session, updated_face_images, FaceImage)
-
-
-
-# %% ../nbs/02_alchemy.ipynb 47
+# %% ../nbs/02_alchemy.ipynb 38
 def update_embeddings_arcface(session, input_dir:str, force_update: bool = False, serfiq = None):
 
     # General case
@@ -637,13 +614,13 @@ def update_embeddings_arcface(session, input_dir:str, force_update: bool = False
 
 
 
-# %% ../nbs/02_alchemy.ipynb 50
+# %% ../nbs/02_alchemy.ipynb 41
 def update_quality_images(session, input_dir, serfiq=None, force_update: bool = False):
     
     update_ser_fiq(session, input_dir, serfiq = serfiq, force_update=force_update)
     update_tface(session, input_dir,  serfiq = serfiq, force_update=force_update)         
 
-# %% ../nbs/02_alchemy.ipynb 51
+# %% ../nbs/02_alchemy.ipynb 42
 def update_ser_fiq(session, input_dir, serfiq=None, force_update: bool = False):
 
     query = session.query(QualityImage, CroppedImage) \
@@ -682,7 +659,7 @@ def update_ser_fiq(session, input_dir, serfiq=None, force_update: bool = False):
     commit_updates(session, updated_quality_images, QualityImage)
 
 
-# %% ../nbs/02_alchemy.ipynb 53
+# %% ../nbs/02_alchemy.ipynb 44
 def update_tface(session, input_dir, serfiq, force_update: bool = False):
     ser_fiq = serfiq
 
